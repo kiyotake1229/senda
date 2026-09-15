@@ -15,6 +15,15 @@
 
 ---
 
+## 開発ドキュメント
+
+開発の記録は `docs/` で管理している。命名規則・連番のルールは [docs/README.md](docs/README.md)。
+
+- 現状の仕様と構成（最初の1本）: [docs/20260915_DOC_0001_ALL_現状の仕様と構成.md](docs/20260915_DOC_0001_ALL_現状の仕様と構成.md)
+- 機能追加・バグ修正・改善をしたら、1件ごとに文書を足して `bash docs/manager/generate_docs_json.sh` を実行する（一覧: `docs/manager/docs.json`）
+
+---
+
 ## 何ができるか
 
 - **ホーム画面がそのまま打てる。** 表示された語を打ち始めた瞬間に60秒が始まる。Enter / Space でも開始
