@@ -8,8 +8,8 @@
 | 公開URL（開発確認用） | https://claude.ai/artifact/FuXyid2Rqz9HzPQAVQffZ5 |
 | サポートURL / Web公開 | https://kiyotake1229.github.io/senda/ （GitHub Pages） |
 | Bundle ID（iOS化時） | `work.ltv.senda` |
-| 本体 | `index.html`（約160KB。CSS・JS・お題データすべて内包） |
-| 収録 | お題 650語／文（8デッキ）。すべて自作・読み校正済み |
+| 本体 | `index.html`（約350KB。CSS・JS・お題データすべて内包） |
+| 収録 | お題 3,722語／文（11デッキ＋ミックス）。すべて自作・読みは複数の方法で確認済み（[#0002](docs/20260918_ENH_0002_DAT_お題を3722語に増量.md)） |
 | 通信 | なし（Google Fonts のみ。無くてもシステムフォントで動く） |
 | データ | 端末内のみ（localStorage）。外部送信なし |
 
@@ -27,6 +27,8 @@
 ## 何ができるか
 
 - **ホーム画面がそのまま打てる。** 表示された語を打ち始めた瞬間に60秒が始まる。Enter / Space でも開始
+- **出題は山札方式。** デッキをシャッフルした順に出し、一巡するまで同じ語は出ない。続きは次のプレイに持ち越す
+- **お題は11デッキ＋ミックス。** 日常のことば・カタカナ語・生きもの・季節・すし屋のことば・日本の地名・ビジネス・ことわざ・四字熟語・プログラミング・短文・長文・English。ミックスは長文と English 以外を全部まぜた出題（初期の選択）
 - **ローマ字は全表記対応。** し = si / shi / ci、ん = n / nn / xn、っ = 子音重ね / xtu、じゃ = ja / jya / zya など。打ち方に合わせて表示が切り替わる（`index.html?test=1` で自己テストが見られる）
 - **5モード**
   - スプリント60 … 60秒で腕前を測る基本モード。ランク判定・自己ベスト・ゴースト対象
@@ -65,6 +67,8 @@
 タイピングゲーム/
   index.html              アプリ本体（CSS / JS / ローマ字エンジン / お題データすべて内包）
   README.md               このファイル
+  docs/                   開発ドキュメント（仕様・変更の記録）
+  tools/check_decks.py    お題の検査ツール（tools/reading.swift は macOS の読みを出す補助）
   manifest.json / sw.js   PWA用
   icon.svg                アイコン元データ
   icon-192.png / icon-512.png / apple-touch-icon.png
@@ -73,6 +77,15 @@
 ## お題の追加
 
 `index.html` 内の `window.DECKS` に `["表示", "よみ"]` を足す。よみはひらがな（カタカナ語の長音は ー、句読点は 、。！？ のみ）。English デッキは表示とよみを同じ文字列にする。
+
+足したら必ず検査する。読みの誤りは「そのお題が誰にも打てない」不具合になる。
+
+```bash
+python3 tools/check_decks.py        # 形式・送り仮名の整合・重複・最後まで打てるか
+python3 tools/check_decks.py --mac  # さらに macOS の読みと突き合わせ（新しく増えた差分だけ目で確認する）
+```
+
+デッキの語数が変わると、そのデッキの山札は利用者の端末で自動的に作り直される。
 
 ## 修正したいとき
 
@@ -86,4 +99,4 @@ git add -A && git commit -m "変更内容" && git push
 
 - iOS アプリ化（Capacitor）。`habit/ios-app/` を雛形にすれば半日程度
 - 実機 iPhone でのソフトキーボード入力の確認（hidden input 方式で実装済み、実機未確認）
-- お題の増量（各デッキ 150 語以上が目安）
+- Claude in Chrome（実際の Chrome）での動作確認。2026-09-15〜18 は拡張機能がアカウントに接続されず未実施。Artifact 版は実機で未確認
