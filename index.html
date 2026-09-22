@@ -19,7 +19,7 @@
 :root{
   --bg0:#0B0E15; --bg1:#10141F; --bg2:#161C2A; --bg3:#1D2535;
   --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.16);
-  --tx:#EEF1F7; --tx2:#9AA3B8; --tx3:#586279;
+  --tx:#EEF1F7; --tx2:#9AA3B8; --tx3:#808BA5; --tx4:#66718B;
   --fl:#5FD3FF; --fl2:#A8ECFF; --fl-d:#1E8FC0; --fl-rgb:95,211,255;
   --amber:#FFB547; --shu:#FF5A6E; --mint:#3EE8A8; --gold:#F3CF6F; --violet:#B48CFF;
   --disp:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
@@ -123,7 +123,8 @@ kbd{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
 /* ------- HOME ------- */
-.home-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:start}
+.home-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:18px;align-items:start}
+.home-grid>*{min-width:0}
 .start{padding:26px 28px 22px;overflow:hidden}
 .start::after{content:"";position:absolute;inset:auto -40% -60% -40%;height:60%;pointer-events:none;
   background:radial-gradient(50% 100% at 50% 100%, rgba(var(--fl-rgb),.16), rgba(var(--fl-rgb),0) 70%)}
@@ -131,9 +132,9 @@ kbd{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var
 .start .lbl i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--fl);box-shadow:0 0 12px var(--fl);animation:pulse 1.6s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
 .start .word{margin:14px 0 10px;text-align:center}
-.start .w-main{font-family:var(--disp);font-weight:800;font-size:46px;letter-spacing:.06em;line-height:1.2}
-.start .w-kana{font-size:16px;color:var(--tx2);letter-spacing:.14em;margin-top:2px}
-.start .w-ro{font-family:var(--mono);font-size:24px;letter-spacing:.06em;margin-top:8px;color:var(--tx3)}
+.start .w-main{font-family:var(--disp);font-weight:800;font-size:46px;letter-spacing:.06em;line-height:1.2;text-wrap:balance;overflow-wrap:anywhere}
+.start .w-kana{font-size:16px;color:var(--tx2);letter-spacing:.14em;margin-top:2px;word-break:break-all}
+.start .w-ro{font-family:var(--mono);font-size:24px;letter-spacing:.06em;margin-top:8px;color:var(--tx4);word-break:break-all}
 .start .w-ro .c{color:var(--tx);position:relative}
 .start .w-ro .c::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:2px;background:var(--fl);box-shadow:0 0 10px var(--fl);animation:pulse 1.2s infinite}
 .start .hint{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--tx3);font-size:12px;margin-top:6px}
@@ -199,11 +200,11 @@ kbd{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var
 .stage{position:relative;text-align:center;padding:10px 0 20px}
 .s-text{font-family:var(--disp);font-weight:800;font-size:44px;letter-spacing:.06em;line-height:1.25;color:var(--tx);min-height:1.25em;text-wrap:balance}
 .s-text.en{font-family:var(--ui);font-weight:700;font-size:38px;letter-spacing:.01em}
-.s-kana{margin-top:6px;font-size:20px;letter-spacing:.2em;color:var(--tx3);min-height:1.6em}
+.s-kana{margin-top:6px;font-size:20px;letter-spacing:.2em;color:var(--tx3);min-height:1.6em;word-break:break-all}
 .s-kana span{transition:color .12s}
-.s-kana span.d{color:var(--tx2)}
+.s-kana span.d{color:rgba(var(--fl-rgb),.62)}
 .s-kana span.c{color:var(--fl);text-shadow:0 0 14px rgba(var(--fl-rgb),.6)}
-.s-ro{margin-top:14px;font-family:var(--mono);font-weight:500;font-size:34px;letter-spacing:.08em;line-height:1.3;color:var(--tx3);min-height:1.3em;word-break:break-all}
+.s-ro{margin-top:14px;font-family:var(--mono);font-weight:500;font-size:34px;letter-spacing:.08em;line-height:1.3;color:var(--tx4);min-height:1.3em;word-break:break-all}
 .s-ro span{display:inline-block;position:relative;transition:color .1s,transform .1s}
 .s-ro span.d{color:var(--fl)}
 .s-ro span.c{color:#fff;font-weight:700}
@@ -377,6 +378,15 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 .hc p{margin:0;font-size:13px;color:var(--tx2);line-height:1.7}
 .ovl .box.wide{width:min(94vw,820px)}
 
+/* play: pause button / IME warning */
+.p-top{position:relative;z-index:26}
+.p-left .iconbtn.sq{width:38px;height:38px;flex:none}
+.imewarn{margin:12px auto 0;max-width:600px;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.45);color:var(--amber);border-radius:10px;padding:9px 14px;font-size:13px;line-height:1.6;text-align:center;animation:sIn .25s both}
+.imewarn b{color:#fff}
+/* touch devices: keyboard shortcut hints are hidden */
+.hint-touch{display:none;justify-content:center;color:var(--tx3);font-size:12px;margin-top:6px}
+.touch .hint,.touch .btn kbd{display:none}
+.touch .hint-touch{display:flex}
 /* hidden input for software keyboards */
 #hid{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:.01;font-size:16px;border:0;padding:0;background:transparent;color:transparent;z-index:1}
 
@@ -399,6 +409,7 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 }
 @media (max-width:600px){
   .scr{padding:calc(var(--safet) + 12px) 16px calc(var(--safeb) + 12px)}
+  .s-ro,.start .w-ro{color:var(--tx3)}
   .top{flex-wrap:wrap;gap:10px}
   .navs{width:100%;justify-content:flex-end;gap:6px}
   .iconbtn.sq{width:36px;height:36px}
@@ -495,6 +506,7 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
               <div class="w-ro" id="hw-ro"></div>
             </div>
             <div class="hint"><span><kbd>Enter</kbd> / <kbd>Space</kbd> でも開始</span><span><kbd>Tab</kbd> お題を変える</span><span><kbd>Esc</kbd> 戻る</span></div>
+            <div class="hint-touch">語をタップするとキーボードが出ます</div>
             <div class="cta"><button class="btn pri" id="b-start"><svg><use href="#i-play"/></svg>はじめる<kbd>Enter</kbd></button></div>
             <div class="ime" id="ime">日本語入力（IME）がオンのようです。<b>半角英数</b>に切り替えると打てます。</div>
           </div>
@@ -533,6 +545,7 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
     <div class="wrap">
       <div class="p-top">
         <div class="p-left">
+          <button class="iconbtn sq" id="b-pause" title="一時停止" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button>
           <span class="chip" id="p-mode"></span>
           <span class="chip" id="p-deck"></span>
           <div class="lives" id="lives" hidden></div>
@@ -559,13 +572,14 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
           <div class="ring" id="ring"></div>
         </div>
         <div class="startnote" id="startnote"></div>
+        <div class="imewarn" id="ime-play" role="alert" hidden></div>
         <div class="ghostrace" id="ghost">
           <div class="rail"><div class="me" id="g-me"></div><div class="gm" id="g-gm"></div></div>
           <div class="meta"><span>あなた <b id="g-mine" class="num">0</b> 打</span><span class="diff" id="g-diff">ゴースト（自己ベスト）</span></div>
         </div>
         <div class="kbd" id="kbd"></div>
       </div>
-      <div class="p-foot"><span><kbd>Esc</kbd> 一時停止 / やめる</span><span id="p-foot-r"><kbd>Tab</kbd> キーボード表示切替</span></div>
+      <div class="p-foot"><span id="p-foot-l"><kbd>Esc</kbd> 一時停止 / やめる</span><span id="p-foot-r"><kbd>Tab</kbd> キーボード表示切替</span></div>
     </div>
     <div class="tap" id="tap">画面をタップして再開</div>
   </section>
@@ -650,7 +664,7 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
     <h3>遊び方</h3>
     <p>表示された語をローマ字で打つだけ。正確さと速さでスコアとランクが決まります。</p>
     <div class="help-cards">
-      <div class="hc"><svg><use href="#i-kbd"/></svg><h4>IMEはオフで</h4><p>日本語入力をオフ（半角英数）にして打ちます。「し」は si でも shi でも、「ん」は n でも nn でも、どの打ち方でも通ります。表示は打ち方に合わせて変わります。</p></div>
+      <div class="hc"><svg><use href="#i-kbd"/></svg><h4 id="help-ime-t">IMEはオフで</h4><p id="help-ime-p">日本語入力をオフ（半角英数）にして打ちます。「し」は si でも shi でも、「ん」は n でも nn でも、どの打ち方でも通ります。表示は打ち方に合わせて変わります。</p></div>
       <div class="hc"><svg><use href="#i-bolt"/></svg><h4>コンボと閃</h4><p>ミスなく打ち続けるとコンボが伸び、音が高く、光が強くなります。10 / 25 / 50 / 100 / 200 で演出が変わります。ミスをすると 0 に戻ります。</p></div>
       <div class="hc"><svg><use href="#i-target"/></svg><h4>スコアとランク</h4><p>スコア = KPM × 正確率³ × コンボ補正。速くても雑だと伸びません。800 で最高位「神速」。結果の弱点キーから特訓へ進めます。</p></div>
     </div>
@@ -1066,6 +1080,7 @@ const NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capa
 const TOUCH=('ontouchstart' in window)&&matchMedia('(pointer:coarse)').matches;
 const REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 if(REDUCE)document.documentElement.classList.add('reduce');
+if(TOUCH)document.documentElement.classList.add('touch');
 
 /* ---------- お題・モード定義 ---------- */
 const MIX_SRC=['basic','katakana','nature','sushi','place','business','kotowaza','tech','short'];
@@ -1195,7 +1210,7 @@ const KBD=(()=>{
 let SCREEN='home';
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$('scr-'+id).classList.add('on');SCREEN=id;
   const X=window.__SENDA;if(id==='home')renderHome();if(id==='stats'&&X.renderStats)X.renderStats();if(id==='ach'&&X.renderAch)X.renderAch();if(id==='set'&&X.renderSet)X.renderSet();
-  if(TOUCH&&(id==='play'||id==='home'))setTimeout(()=>$('hid').focus({preventScroll:true}),50);}
+  if(TOUCH&&(id==='play'||id==='home')){try{$('hid').focus({preventScroll:true})}catch(e){}}}
 let toastT=0;function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200)}
 function ovl(id,on){$(id).classList.toggle('on',!!on)}
 
@@ -1286,7 +1301,9 @@ function startRun(mode,deck,opts={}){
   $('combo').className='combo';$('combo-n').textContent='0';$('heat').className='heat';
   $('ghost').classList.toggle('on',!!R.ghost);if(R.ghost){$('g-me').style.width='0%';$('g-gm').style.left='0%';$('g-mine').textContent='0';$('g-diff').textContent='ゴースト（自己ベスト）';$('g-diff').className='diff'}
   $('s-wt').classList.remove('on');$('float').classList.remove('on');$('ring').classList.remove('on');
-  $('startnote').innerHTML=mode==='drill'?`狙うキー <b>${weak.join('  ')}</b> ・ 打ち始めるとスタート`:mode==='free'?`打ち始めると計測開始 ・ <b>Esc</b> で終了して結果を見る`:`打ち始めると<b>スタート</b>`;
+  $('startnote').innerHTML=(TOUCH?'画面をタップするとキーボードが出ます<br>':'')+(mode==='drill'?`狙うキー <b>${weak.join('  ')}</b> ・ 打ち始めるとスタート`:mode==='free'?`打ち始めると計測開始 ・ ${TOUCH?'左上のボタン':'<b>Esc</b>'}で終了して結果を見る`:`打ち始めると<b>スタート</b>`);
+  $('ime-play').hidden=true;
+  $('p-foot-l').innerHTML=TOUCH?'左上のボタンで一時停止・終了':'<kbd>Esc</kbd> 一時停止 / やめる';
   $('kbd').classList.toggle('hide',!S.set.kbd||TOUCH);KBD.resetHints();
   $('p-foot-r').innerHTML=TOUCH?'':'<kbd>Tab</kbd> キーボード表示切替';
   nextWord(false);
@@ -1312,6 +1329,7 @@ const tierColor=()=>R.combo>=200?'#F3CF6F':R.combo>=100?'#FF5A6E':R.combo>=50?'#
 /* ---------- 入力 ---------- */
 function handleChar(ch){
   if(!R||R.ended||paused)return;
+  {const iw=$('ime-play');if(!iw.hidden)iw.hidden=true}
   if(!R.started){R.started=true;R.startAt=now();R.lastOk=0;$('startnote').textContent='';raf=requestAnimationFrame(loop)}
   const tl=R.typer.typedLength();const expected=R.typer.romajiDisplay()[tl]||'';
   const res=R.typer.input(ch);const t=now();
@@ -1386,7 +1404,7 @@ function finish(){
 }
 function showResult(){
   const r=R;const elapsed=Math.max(1,r.elapsed);const tot=r.correct+r.miss;const acc=tot?r.correct/tot:1;const kpm=r.correct/(elapsed/60);
-  const score=scoreOf(kpm,acc,r.maxCombo);const rk=rankOf(score);
+  const score=scoreOf(kpm,acc,r.maxCombo);const ranked=r.mode!=='free'||elapsed>=30;const rk=ranked?rankOf(score):['—','—','練習','#9AA3B8'];
   const rec={mode:r.mode,deck:r.mode==='daily'?'daily':r.deck,score,kpm:Math.round(kpm),acc:Math.round(acc*1000)/10,combo:r.maxCombo,words:r.words,correct:r.correct,miss:r.miss,sec:Math.round(elapsed),money:r.money,date:ymd(),soft:TOUCH,official:r.official};
   const valid=r.correct>=10;
   let isNew=false;
@@ -1405,11 +1423,12 @@ function showResult(){
   // ---- UI ----
   $('r-mode').textContent=MODES[r.mode].name+(r.mode==='daily'?(r.official?'・本番':'・練習'):'');$('r-deck').textContent=lastRes.deckName;
   const kj=$('r-kj');kj.textContent=rk[2];kj.style.setProperty('--rk',rk[3]);kj.classList.remove('rev');void kj.offsetWidth;kj.classList.add('rev');
-  $('r-grade').textContent='RANK '+rk[1]+(valid?'':'（参考）');
+  $('r-grade').textContent=ranked?'RANK '+rk[1]+(valid?'':'（参考）'):'PRACTICE';
   const stamp=$('r-stamp');stamp.classList.remove('on');stamp.textContent=rk[1]==='SSS'?'閃':'疾';if(rk[1]==='SSS'||rk[1]==='SS'){void stamp.offsetWidth;stamp.classList.add('on')}
   $('r-new').classList.toggle('on',isNew&&valid);
   const nr=nextRank(score);let nx=nr?`次のランク「${nr[2]}」まで あと <b>${fmt(nr[0]-score)}</b>`:'最高位に到達';
   if(r.miss>0){const perfect=scoreOf(kpm,1,r.maxCombo);nx+=`<br>ミス0なら <b>+${fmt(perfect-score)}</b>`}
+  if(!ranked)nx='30秒以上続けるとランクが付きます';
   if(!valid)nx='10打以上で記録されます';
   $('r-next').innerHTML=nx;
   rollNumber($('r-score'),r.mode==='buffet'?r.money:score,r.mode==='buffet'?'¥':'');
@@ -1434,10 +1453,10 @@ const ACH=[
  ['combo100','百連','コンボ 100 に到達',r=>r.combo>=100],
  ['combo200','二百連','コンボ 200 に到達',r=>r.combo>=200],
  ['acc100','無傷','150打以上でミス 0',r=>r.miss===0&&r.correct>=150],
- ['kpm300','疾風の指','KPM 300 以上',r=>r.kpm>=300],
- ['kpm500','神速の指','KPM 500 以上',r=>r.kpm>=500],
- ['rankS','達人','ランク S 以上',r=>r.score>=500&&r.mode!=='free'],
- ['rankSSS','閃','最高位「神速」に到達',r=>r.score>=800&&r.mode!=='free'],
+ ['kpm300','疾風の指','30秒以上の走りで KPM 300 以上',r=>r.kpm>=300&&r.sec>=30],
+ ['kpm500','神速の指','30秒以上の走りで KPM 500 以上',r=>r.kpm>=500&&r.sec>=30],
+ ['rankS','達人','ランク S 以上',r=>r.score>=500&&r.mode!=='free'&&r.sec>=30],
+ ['rankSSS','閃','最高位「神速」に到達',r=>r.score>=800&&r.mode!=='free'&&r.sec>=30],
  ['streak7','七日皆勤','7日連続でプレイ',r=>S.streak.cur>=7],
  ['keys10k','一万打','累計 10,000 打',r=>S.total.keys>=10000],
  ['keys100k','十万打','累計 100,000 打',r=>S.total.keys>=100000],
@@ -1453,7 +1472,7 @@ function renderAch(){$('badges').innerHTML=ACH.map((a,i)=>{const d=S.ach[a[0]];r
 
 /* ---------- 記録画面 ---------- */
 function renderStats(){
-  const el=$('stats-body');const T=S.total;const bestKpm=S.hist.reduce((m,h)=>Math.max(m,h.kpm),0);const bestCombo=S.hist.reduce((m,h)=>Math.max(m,h.combo),0);
+  const el=$('stats-body');const T=S.total;const bestKpm=S.hist.filter(h=>h.sec>=30).reduce((m,h)=>Math.max(m,h.kpm),0);const bestCombo=S.hist.reduce((m,h)=>Math.max(m,h.combo),0);
   const hist=S.hist.filter(h=>MODES[h.mode].ranked).slice(0,30).reverse();
   let chart='<div class="empty">スプリント・デイリー・食べ放題を3回以上プレイすると推移が表示されます</div>';
   if(hist.length>=3){const W=560,H=160,P=28;const mx=Math.max(...hist.map(h=>h.score),100),mn=0;const px=i=>P+i*(W-2*P)/(hist.length-1),py=v=>H-P-(v-mn)/(mx-mn)*(H-2*P);
@@ -1523,7 +1542,7 @@ function renderSet(){
 function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t);return new Promise(res=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();res()})}
 
 /* ---------- 共有カード ---------- */
-function resultText(){const {rec,rk,deckName}=lastRes;return`閃打 ${MODES[rec.mode].name}｜${deckName}｜${rec.mode==='buffet'?'¥'+fmt(rec.money)+'（スコア '+fmt(rec.score)+'）':'スコア '+fmt(rec.score)} ${rk[2]}（${rk[1]}）｜KPM ${fmt(rec.kpm)}｜正確率 ${rec.acc.toFixed(1)}%｜最大コンボ ${rec.combo}｜${ymdDash(rec.date)} #閃打`}
+function resultText(){const {rec,rk,deckName}=lastRes;return`閃打 ${MODES[rec.mode].name}｜${deckName}｜${rec.mode==='buffet'?'¥'+fmt(rec.money)+'（スコア '+fmt(rec.score)+'）':'スコア '+fmt(rec.score)} ${rk[1]==='—'?'練習':rk[2]+'（'+rk[1]+'）'}｜KPM ${fmt(rec.kpm)}｜正確率 ${rec.acc.toFixed(1)}%｜最大コンボ ${rec.combo}｜${ymdDash(rec.date)} #閃打`}
 async function shareCard(){
   const {rec,rk,deckName}=lastRes;const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');
   try{await document.fonts.ready}catch(e){}
@@ -1542,7 +1561,7 @@ async function shareCard(){
   x.strokeStyle='rgba(255,255,255,.1)';x.lineWidth=1;x.beginPath();x.moveTo(70,530);x.lineTo(1130,530);x.stroke();
   x.font='500 16px "Zen Kaku Gothic New", sans-serif';x.fillStyle='#586279';x.fillText(`${ymdDash(rec.date)}   ${rec.official?'デイリー本番':''}`,70,570);x.textAlign='right';x.fillText('kiyotake1229.github.io/senda',1130,570);x.textAlign='left';
   x.font='800 250px "Shippori Mincho B1", serif';x.textAlign='center';const kg=x.createLinearGradient(0,150,0,470);kg.addColorStop(0,'#fff');kg.addColorStop(.6,rk[3]);kg.addColorStop(1,rk[3]);x.fillStyle=kg;x.shadowColor=hexA(rk[3],.5);x.shadowBlur=40;x.fillText(rk[2],920,430);x.shadowBlur=0;
-  x.font='700 26px "JetBrains Mono", monospace';x.fillStyle=rk[3];x.fillText('RANK  '+rk[1],920,490);x.textAlign='left';
+  x.font='700 26px "JetBrains Mono", monospace';x.fillStyle=rk[3];x.fillText(rk[1]==='—'?'PRACTICE':'RANK  '+rk[1],920,490);x.textAlign='left';
   const url=c.toDataURL('image/png');$('share-img').src=url;
   const nb=$('b-share-native');let file=null;
   try{const blob=await new Promise(r=>c.toBlob(r,'image/png'));file=new File([blob],'senda.png',{type:'image/png'})}catch(e){}
@@ -1567,8 +1586,10 @@ function onChar(ch){
   if(scr==='home'){const h=X.getHome();if(!h.typer)return;const probe=makeTyper(h.item[1]);if(probe.input(ch)!=='miss'){startRun(S.mode,S.deck,{first:h.item,firstChar:ch})}return}
   if(scr==='play')handleChar(ch);
 }
+const IME_MSG=TOUCH?'日本語キーボードになっています。<b>英語（ABC）キーボード</b>に切り替えると打てます。':'日本語入力（IME）がオンのようです。<b>英数</b>に切り替えると打てます（Mac は英数キー、Windows は半角/全角キー）。';
+function imeWarn(){if(X.getScreen()==='play'){const w=$('ime-play');w.innerHTML=IME_MSG;w.hidden=false}else{const w=$('ime');w.innerHTML=IME_MSG;w.classList.add('on')}}
 document.addEventListener('keydown',e=>{
-  if(e.isComposing||e.key==='Process'||e.keyCode===229){$('ime').classList.add('on');return}
+  if(e.isComposing||e.key==='Process'||e.keyCode===229){imeWarn();return}
   if(e.metaKey||e.ctrlKey||e.altKey)return;
   const scr=X.getScreen();
   if($('ovl-help').classList.contains('on')){if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();closeHelp()}return}
@@ -1589,7 +1610,7 @@ document.addEventListener('keydown',e=>{
 });
 const hid=$('hid');
 hid.addEventListener('input',e=>{if(e.isComposing)return;const data=e.data!=null?e.data:hid.value;hid.value='';if(!data)return;AU.resume();for(const ch of data)onChar(ch)});
-hid.addEventListener('compositionstart',()=>$('ime').classList.add('on'));
+hid.addEventListener('compositionstart',imeWarn);
 if(TOUCH){['stage','start','pbody'].forEach(id=>$(id).addEventListener('touchend',e=>{hid.focus({preventScroll:true})}));
   hid.addEventListener('blur',()=>{if(X.getScreen()==='play'&&R&&!R.ended)$('tap').classList.add('on')});hid.addEventListener('focus',()=>$('tap').classList.remove('on'));
   $('tap').addEventListener('touchend',e=>{e.preventDefault();hid.focus({preventScroll:true})})}
@@ -1605,12 +1626,14 @@ $('b-help-close').onclick=closeHelp;
 ['b-back1','b-back2','b-back3','b-home'].forEach(id=>$(id).onclick=()=>show('home'));
 $('b-retry').onclick=retry;$('b-share').onclick=shareCard;$('b-share-close').onclick=()=>ovl('ovl-share',false);
 $('b-copy').onclick=()=>copyText(resultText()).then(()=>toast('結果をコピーしました'));
-$('b-resume').onclick=resume;$('b-quit').onclick=quitToHome;$('b-restart').onclick=()=>{const m=R.mode,d=R.deck,w=R.weak;quitToHome();startRun(m,d,{weak:w})};
+$('b-resume').onclick=()=>{if(TOUCH)hid.focus({preventScroll:true});resume()};
+$('b-pause').onclick=()=>{if(R&&!R.ended)pause()};$('b-quit').onclick=quitToHome;$('b-restart').onclick=()=>{const m=R.mode,d=R.deck,w=R.weak;quitToHome();startRun(m,d,{weak:w})};
 $('b-finish').onclick=()=>{ovl('ovl-pause',false);paused=false;finish()};
 $('start').addEventListener('click',()=>{AU.resume();if(TOUCH)hid.focus({preventScroll:true})});
 
 /* ---------- 起動 ---------- */
 KBD.mount($('kbd'));
+if(TOUCH){$('help-ime-t').textContent='英語キーボードで';$('help-ime-p').textContent='キーボードを英語（ABC）に切り替えて打ちます。日本語キーボードのままだと入力できません。「し」は si でも shi でも、「ん」は n でも nn でも、どの打ち方でも通ります。';$('ime').innerHTML=IME_MSG}
 X.renderHome();
 if(location.search.includes('test=1'))selfTest();else if(!S.help)ovl('ovl-help',true);
 if('serviceWorker' in navigator&&!X.NATIVE&&/github\.io$|^localhost$|^127\./.test(location.hostname)){navigator.serviceWorker.register('sw.js').catch(()=>{})}
