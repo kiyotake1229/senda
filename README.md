@@ -8,7 +8,7 @@
 | 公開URL（開発確認用） | https://claude.ai/artifact/FuXyid2Rqz9HzPQAVQffZ5 |
 | サポートURL / Web公開 | https://kiyotake1229.github.io/senda/ （GitHub Pages） |
 | Bundle ID（iOS化時） | `work.ltv.senda` |
-| 本体 | `index.html`（約350KB。CSS・JS・お題データすべて内包） |
+| 本体 | `index.html`（約390KB。CSS・JS・お題データすべて内包） |
 | 収録 | お題 3,722語／文（11デッキ＋ミックス）。すべて自作・読みは複数の方法で確認済み（[#0002](docs/20260918_ENH_0002_DAT_お題を3722語に増量.md)） |
 | 通信 | なし（Google Fonts のみ。無くてもシステムフォントで動く） |
 | データ | 端末内のみ（localStorage）。外部送信なし |
@@ -28,6 +28,8 @@
 
 - **ホーム画面がそのまま打てる。** 表示された語を打ち始めた瞬間に60秒が始まる。Enter / Space でも開始
 - **出題は山札方式。** デッキをシャッフルした順に出し、一巡するまで同じ語は出ない。続きは次のプレイに持ち越す
+- **語の長さを選べる。** ぜんぶ／みじかめ（よみ6字以下）／ながめ。English では単語と英文に分かれる
+- **ことわざ・四字熟語は意味も出る。** 350語すべてに意味付き（設定で消せる）
 - **お題は11デッキ＋ミックス。** 日常のことば・カタカナ語・生きもの・季節・すし屋のことば・日本の地名・ビジネス・ことわざ・四字熟語・プログラミング・短文・長文・English。ミックスは長文と English 以外を全部まぜた出題（初期の選択）
 - **ローマ字は全表記対応。** し = si / shi / ci、ん = n / nn / xn、っ = 子音重ね / xtu、じゃ = ja / jya / zya など。打ち方に合わせて表示が切り替わる（`index.html?test=1` で自己テストが見られる）
 - **5モード**
@@ -38,7 +40,9 @@
   - 練習 … 時間無制限。Esc で終了して結果を見る
 - **ゴーストレース。** 自己ベストの走り（1秒ごとの正打数）をレールに表示し、差を打数で示す
 - **手応え。** 打鍵音はコンボで音階が上がる（WebAudio 合成・音源ファイルなし）。コンボ25でハイハット、節目で衝撃波、ミスで画面が揺れる
-- **結果。** ランクの漢字（入門〜神速）が筆致で現れ、SS 以上は朱印。「次のランクまであと N」「ミス0なら +N」を常に表示。結果カード（1200×630 PNG）を共有・保存できる
+- **結果。** ランクの漢字（入門〜神速）が筆致で現れ、SS 以上は朱印。「次のランクまであと N」「ミス0なら +N」を常に表示。結果カード（1200×630 PNG）の共有・保存と「Xでシェア」ができる。練習モードは30秒以上でランクが付く
+- **スマホでも遊べる。** 左上の一時停止ボタン、日本語キーボードのままのときの警告、スマホ向けの案内
+- **公開URLを貼るとプレビュー画像が出る**（`ogp.png`）
 - **記録。** スコア推移グラフ、キーボードのミス率ヒートマップ、弱点キー、自己ベスト、デイリーの暦、実績16個
 - **設定。** 効果音量、アクセント色5種、ローマ字の表示流儀（shi / si）、文字サイズ、運指の色分け、データの書き出し／読み込み
 
@@ -69,6 +73,10 @@
   README.md               このファイル
   docs/                   開発ドキュメント（仕様・変更の記録）
   tools/check_decks.py    お題の検査ツール（tools/reading.swift は macOS の読みを出す補助）
+  tools/test_romaji.js    ローマ字エンジンの自動テスト（33,187件）
+  tools/ogp.html          ogp.png（リンクのプレビュー画像）の元データ
+  ogp.png                 リンクのプレビュー画像（1200×630）
+  .github/workflows/      push のたびにテストとお題の検査を自動で実行
   manifest.json / sw.js   PWA用
   icon.svg                アイコン元データ
   icon-192.png / icon-512.png / apple-touch-icon.png
@@ -89,7 +97,14 @@ python3 tools/check_decks.py --mac  # さらに macOS の読みと突き合わ�
 
 ## 修正したいとき
 
-`index.html` を直して commit → push すると GitHub Pages に反映される（数分）。
+`index.html` を直したら、まずテストを通す。
+
+```bash
+node tools/test_romaji.js
+python3 tools/check_decks.py
+```
+
+commit → push すると GitHub Pages に反映される（数分）。push のたびに同じテストが GitHub Actions でも自動で走る（結果: https://github.com/kiyotake1229/senda/actions ）。
 
 ```bash
 git add -A && git commit -m "変更内容" && git push
@@ -97,6 +112,6 @@ git add -A && git commit -m "変更内容" && git push
 
 ## 残作業・構想
 
-- iOS アプリ化（Capacitor）。`habit/ios-app/` を雛形にすれば半日程度
+- iOS アプリ化（Capacitor）。`habit/ios-app/` を雛形にすれば半日程度。毎日のリマインド通知・記録の二重保存・触覚は `index.html` に組み込み済み（[#0013](docs/20260922_NEW_0013_IOS_毎日のリマインド通知と記録の二重保存.md)）。必要なプラグインは local-notifications・preferences・haptics
 - 実機 iPhone でのソフトキーボード入力の確認（hidden input 方式で実装済み、実機未確認）
 - Claude in Chrome（実際の Chrome）での動作確認。2026-09-15〜18 は拡張機能がアカウントに接続されず未実施。Artifact 版は実機で未確認

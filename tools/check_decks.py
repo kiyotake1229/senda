@@ -10,6 +10,7 @@
   - 表示とよみの整合: 表示の中の仮名・記号が、よみの同じ位置に同じ順で現れるか（送り仮名や句読点の食い違いを検出）
   - 長さ・重複（デッキをまたいだ重複も）
   - ローマ字エンジン: 表示されるローマ字どおりに打って最後まで打ち切れるか（node が必要）
+  - 意味（3つ目の要素。ことわざ・四字熟語のみ）: 8〜48字、英数字・かっこ・句点なし
   - --mac: macOS の読みと違うものを一覧にする。連濁（〜がわ・〜じま など）で macOS が誤ることが多いので、
            一覧は「人が目で確認する候補」。同じ仮名の抜け（ししたの→したの 等）の発見に効く
 終了コード: 形式エラーがあれば 1
@@ -99,7 +100,12 @@ def main():
     seen = {}
     rows = []
     for k, d in decks.items():
-        for t, kn in d['items']:
+        for item in d['items']:
+            t, kn = item[0], item[1]
+            if len(item) > 2:
+                mean = item[2]
+                if not isinstance(mean, str) or not (8 <= len(mean) <= 48) or re.search(r'[a-zA-Z0-9「」『』（）()。]', mean):
+                    errors.append((k, t, f'意味の形式が不正: {mean}'))
             if t in seen:
                 errors.append((k, t, f'重複（{seen[t]} にもある）'))
             seen.setdefault(t, k)

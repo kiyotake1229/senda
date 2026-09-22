@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>閃打 OGP画像の元データ</title>
+<!-- ogp.png（1200×630、リンクを貼ったときのプレビュー画像）の元データ。
+     書き出し: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --mute-audio --hide-scrollbars \
+       --user-data-dir="$(mktemp -d)" --window-size=1200,630 --virtual-time-budget=8000 --screenshot=ogp.png "file://$PWD/tools/ogp.html" -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Zen+Kaku+Gothic+New:wght@500;700&family=JetBrains+Mono:wght@500;700&display=block">
+<style>
+  html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#0B0E15}
+  body{position:relative;font-family:"Zen Kaku Gothic New","Hiragino Sans",sans-serif;color:#EEF1F7;
+    background:radial-gradient(70% 90% at 78% 40%,rgba(95,211,255,.16),rgba(95,211,255,0) 65%),linear-gradient(135deg,#161E30 0%,#0F1320 55%,#090B11 100%)}
+  body::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) .7px,transparent .7px);background-size:4px 4px}
+  .left{position:absolute;left:84px;top:92px;width:520px}
+  .logo{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:188px;line-height:1;letter-spacing:.06em;
+    background:linear-gradient(180deg,#fff 0%,#A8ECFF 48%,#5FD3FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 6px 36px rgba(95,211,255,.35))}
+  .en{font-family:"JetBrains Mono",monospace;font-size:20px;letter-spacing:.62em;color:#808BA5;margin:18px 0 0 6px}
+  .tag{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:40px;letter-spacing:.16em;margin-top:34px}
+  .sub{font-size:24px;color:#9AA3B8;margin-top:12px;letter-spacing:.06em}
+  .card{position:absolute;right:84px;top:118px;width:436px;padding:34px 36px 30px;border-radius:24px;
+    background:rgba(22,28,42,.86);border:1px solid rgba(95,211,255,.35);box-shadow:0 30px 80px -30px rgba(95,211,255,.45),inset 0 1px 0 rgba(255,255,255,.06)}
+  .lbl{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.3em;color:#808BA5;display:flex;align-items:center;gap:10px}
+  .lbl i{width:9px;height:9px;border-radius:50%;background:#5FD3FF;box-shadow:0 0 12px #5FD3FF}
+  .w{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:72px;text-align:center;margin-top:18px;letter-spacing:.08em}
+  .k{text-align:center;font-size:20px;letter-spacing:.3em;color:#808BA5;margin-top:4px}
+  .k b{color:#5FD3FF;font-weight:500;text-shadow:0 0 14px rgba(95,211,255,.6)}
+  .r{text-align:center;font-family:"JetBrains Mono",monospace;font-size:40px;letter-spacing:.1em;margin-top:14px;color:#66718B}
+  .r .d{color:#5FD3FF}
+  .r .c{color:#fff;font-weight:700;position:relative}
+  .r .c::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:3px;border-radius:2px;background:#5FD3FF;box-shadow:0 0 12px #5FD3FF}
+  .combo{position:absolute;right:30px;top:24px;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;color:#FFB547;letter-spacing:.12em}
+  .chips{position:absolute;left:84px;bottom:74px;display:flex;gap:12px}
+  .chip{font-size:19px;color:#C9D0DE;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);border-radius:999px;padding:9px 20px}
+  .chip b{color:#5FD3FF;font-family:"JetBrains Mono",monospace}
+  .url{position:absolute;right:84px;bottom:84px;font-family:"JetBrains Mono",monospace;font-size:18px;color:#808BA5;letter-spacing:.04em}
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="logo">閃打</div>
+    <div class="en">SENDA</div>
+    <div class="tag">指先が、閃く。</div>
+    <div class="sub">1分で腕前がわかる日本語タイピング</div>
+  </div>
+  <div class="card">
+    <div class="combo">COMBO 48</div>
+    <div class="lbl"><i></i>この語を打てば、すぐ始まる</div>
+    <div class="w">閃光</div>
+    <div class="k"><b>せん</b>こう</div>
+    <div class="r"><span class="d">sen</span><span class="c">k</span>ou</div>
+  </div>
+  <div class="chips">
+    <span class="chip"><b>3,722</b> 語</span>
+    <span class="chip">ローマ字はどの打ち方でもOK</span>
+    <span class="chip">登録なし・無料</span>
+  </div>
+  <div class="url">kiyotake1229.github.io/senda</div>
+</body>
+</html>
