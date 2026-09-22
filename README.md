@@ -114,4 +114,5 @@ git add -A && git commit -m "変更内容" && git push
 
 - iOS アプリ化（Capacitor）。`habit/ios-app/` を雛形にすれば半日程度。毎日のリマインド通知・記録の二重保存・触覚は `index.html` に組み込み済み（[#0013](docs/20260922_NEW_0013_IOS_毎日のリマインド通知と記録の二重保存.md)）。必要なプラグインは local-notifications・preferences・haptics
 - 実機 iPhone でのソフトキーボード入力の確認（hidden input 方式で実装済み、実機未確認）
-- Claude in Chrome（実際の Chrome）での動作確認。2026-09-15〜18 は拡張機能がアカウントに接続されず未実施。Artifact 版は実機で未確認
+- 実機確認の残り: iPhone・iPad の実機（ソフトキーボード）と、Artifact 版での打鍵。実際の Chrome での公開版の確認は 2026-09-22 に済み（[#0015](docs/20260922_INQ_0015_ALL_実機での動作確認.md)）
+- SNS に URL を貼ったときのプレビュー画像の見え方（未確認）
