@@ -1354,7 +1354,7 @@ function startRun(mode,deck,opts={}){
   $('p-foot-r').innerHTML=TOUCH?'':'<kbd>Tab</kbd> キーボード表示切替';
   nextWord(false);
   show('play');
-  if(opts.firstChar)setTimeout(()=>handleChar(opts.firstChar),0);
+  if(opts.firstChar)handleChar(opts.firstChar);
 }
 function srcTake(){const s=R.src;if(s.deck)return X.bagTake(s.deck);if(s.i>=s.list.length)s.list=s.list.concat(s.refill());return s.list[s.i++]}
 function srcPeek(){const s=R.src;if(s.deck)return X.bagPeek(s.deck);return s.list[s.i]||null}
