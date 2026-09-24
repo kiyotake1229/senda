@@ -390,6 +390,33 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 .hc p{margin:0;font-size:13px;color:var(--tx2);line-height:1.7}
 .ovl .box.wide{width:min(94vw,820px)}
 
+/* スマホ用の画面キーボード（フリック / ローマ字） */
+.mkb{position:absolute;left:0;right:0;bottom:0;z-index:24;height:46vh;min-height:280px;padding:10px 8px calc(var(--safeb) + 8px);
+  background:linear-gradient(180deg,rgba(11,14,21,0),rgba(11,14,21,.92) 14%,#0B0E15 36%);touch-action:none;-webkit-user-select:none;user-select:none}
+.mkb[hidden]{display:none}
+.mkb-kana{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:6px;height:100%}
+.mkb-abc{display:flex;flex-direction:column;gap:6px;height:100%;justify-content:flex-end}
+.mkb-row{display:flex;gap:5px;flex:1}
+.mk{border-radius:12px;background:var(--bg2);border:1px solid var(--line);color:var(--tx);font-family:var(--ui);font-weight:500;font-size:23px;
+  display:flex;align-items:center;justify-content:center;transition:background .08s,border-color .08s;padding:0}
+.mk:active,.mk.on{background:rgba(var(--fl-rgb),.28);border-color:var(--fl)}
+.mk.fn{font-size:13px;color:var(--tx2);letter-spacing:.06em}
+.mk.fn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.mk.ab{flex:1;font-family:var(--mono);font-size:18px}
+.mk.ab.wide{flex:3}
+.mk.mod{font-size:17px;letter-spacing:.02em}
+.mkb-guide{position:fixed;z-index:31;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,42px);gap:3px;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 12px 24px rgba(0,0,0,.6))}
+.mkb-guide[hidden]{display:none}
+.gc{display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--tx);background:#1b2233;border:1px solid var(--line2);border-radius:9px}
+.gc.on{background:var(--fl);color:#06111c;font-weight:700;border-color:var(--fl)}
+.gc.blank{opacity:0}
+/* キーボードを出している間のプレイ画面 */
+.kbon .p-body{justify-content:flex-start;padding-top:2vh;margin-bottom:46vh}
+.kbon .kbd,.kbon .ghostrace,.kbon .s-next{display:none}
+.kbon .s-text{font-size:32px}
+.kbon .s-kana{font-size:26px;letter-spacing:.16em}
+.kbon .s-kana span.pend{color:var(--amber);text-shadow:0 0 14px rgba(255,181,71,.6)}
+.kbon .s-ro.hide{display:none}
 /* length filter */
 .lens{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
 .lens .lenlbl{font-size:11px;letter-spacing:.2em;color:var(--tx3);font-family:var(--mono);margin-right:4px}
@@ -535,7 +562,7 @@ a.btn{text-decoration:none}
               <div class="w-ro" id="hw-ro"></div>
             </div>
             <div class="hint"><span><kbd>Enter</kbd> / <kbd>Space</kbd> でも開始</span><span><kbd>Tab</kbd> お題を変える</span><span><kbd>Esc</kbd> 戻る</span></div>
-            <div class="hint-touch">語をタップするとキーボードが出ます</div>
+            <div class="hint-touch" id="hint-touch">「はじめる」を押すと、画面のキーボードで打てます</div>
             <div class="cta"><button class="btn pri" id="b-start"><svg><use href="#i-play"/></svg>はじめる<kbd>Enter</kbd></button></div>
             <div class="ime" id="ime">日本語入力（IME）がオンのようです。<b>半角英数</b>に切り替えると打てます。</div>
           </div>
@@ -612,6 +639,7 @@ a.btn{text-decoration:none}
       </div>
       <div class="p-foot"><span id="p-foot-l"><kbd>Esc</kbd> 一時停止 / やめる</span><span id="p-foot-r"><kbd>Tab</kbd> キーボード表示切替</span></div>
     </div>
+    <div class="mkb" id="mkb" hidden></div>
     <div class="tap" id="tap">画面をタップして再開</div>
   </section>
 
@@ -1073,8 +1101,82 @@ a.btn{text-decoration:none}
 
   function previewRomaji(kana) { return createTyper(kana).romajiDisplay(); }
 
+  // ---------------------------------------------------------------------------
+  // かな入力（スマホのフリック入力）用の判定
+  // キーボード側がフリック・濁点の処理をして「かな1文字」を送ってくる。ここでは
+  // 出題のかなと突き合わせ、同じキー（あ行キーなど）の中の文字なら「途中」として受理する。
+  // 例: 「が」を出題中に「か」→ 受理（途中）、続けて濁点で「が」→ 確定。
+  // ---------------------------------------------------------------------------
+
+  var KANA_KEYS = {
+    a: 'あいうえおぁぃぅぇぉゔ',
+    ka: 'かきくけこがぎぐげご',
+    sa: 'さしすせそざじずぜぞ',
+    ta: 'たちつてとだぢづでどっ',
+    na: 'なにぬねの',
+    ha: 'はひふへほばびぶべぼぱぴぷぺぽ',
+    ma: 'まみむめも',
+    ya: 'やゆよゃゅょ',
+    ra: 'らりるれろ',
+    wa: 'わをんーゎ',
+    pun: '、。！？'
+  };
+  var KANA_KEY_OF = {};
+  for (var kk in KANA_KEYS) for (var ki = 0; ki < KANA_KEYS[kk].length; ki++) KANA_KEY_OF[KANA_KEYS[kk][ki]] = kk;
+  function kanaKeyOf(ch) { return KANA_KEY_OF[ch] || null; }
+
+  // 濁点・小文字キーの並び（iOS と同じ順で一巡する）
+  var KANA_CYCLES = ['あぁ', 'いぃ', 'うぅゔ', 'えぇ', 'おぉ', 'かが', 'きぎ', 'くぐ', 'けげ', 'こご',
+    'さざ', 'しじ', 'すず', 'せぜ', 'そぞ', 'ただ', 'ちぢ', 'つっづ', 'てで', 'とど',
+    'はばぱ', 'ひびぴ', 'ふぶぷ', 'へべぺ', 'ほぼぽ', 'やゃ', 'ゆゅ', 'よょ', 'わゎ'];
+  var KANA_NEXT = {};
+  for (var ci = 0; ci < KANA_CYCLES.length; ci++) {
+    var cyc = KANA_CYCLES[ci];
+    for (var cj = 0; cj < cyc.length; cj++) KANA_NEXT[cyc[cj]] = cyc[(cj + 1) % cyc.length];
+  }
+  function kanaCycle(ch) { return KANA_NEXT[ch] || null; }
+
+  function createKanaTyper(input) {
+    var kana = normalizeKana(input);
+    var i = 0, pending = null, done = kana.length === 0;
+    function inputKana(ch) {
+      if (done) return 'miss';
+      ch = String(ch);
+      if (ch === kana[i]) {
+        i++; pending = null;
+        if (i >= kana.length) { done = true; return 'done'; }
+        return 'ok';
+      }
+      var k = kanaKeyOf(ch);
+      if (k && k === kanaKeyOf(kana[i])) { pending = ch; return 'ok'; }
+      return 'miss';
+    }
+    return {
+      kana: kana,
+      input: inputKana,
+      expected: function () { return done ? '' : kana[i]; },
+      pending: function () { return pending; },
+      kanaIndex: function () { return i; },
+      kanaDone: function () { return i; },
+      isDone: function () { return done; },
+      reset: function () { i = 0; pending = null; done = kana.length === 0; }
+    };
+  }
+
+  // かな入力で打てるか（英語のお題などは打てない）
+  function kanaTypeable(input) {
+    var kana = normalizeKana(input);
+    for (var i = 0; i < kana.length; i++) if (!kanaKeyOf(kana[i])) return false;
+    return kana.length > 0;
+  }
+
   var api = {
     createTyper: createTyper,
+    createKanaTyper: createKanaTyper,
+    kanaKeyOf: kanaKeyOf,
+    kanaCycle: kanaCycle,
+    kanaTypeable: kanaTypeable,
+    KANA_KEYS: KANA_KEYS,
     previewRomaji: previewRomaji,
     toHiragana: toHiragana,
     normalizeKana: normalizeKana,
@@ -1128,9 +1230,13 @@ const MODES={
   drill: {name:'弱点特訓',sub:'苦手なキーを狙って60秒',icon:'i-target',time:60,ranked:false,ghost:true},
   free:  {name:'練習',sub:'時間無制限。Escで終了',icon:'i-play',time:0,ranked:false,ghost:false},
 };
+const RANKS_KANA=[[420,'SSS','神速','#F3CF6F'],[340,'SS','疾風','#F3CF6F'],[270,'S','達人','#F3CF6F'],[210,'A','上級','#B48CFF'],[160,'B','中級','#5FD3FF'],[115,'C','初級','#3EE8A8'],[70,'D','見習い','#9AA3B8'],[0,'E','入門','#9AA3B8']];
 const RANKS=[[800,'SSS','神速','#F3CF6F'],[650,'SS','疾風','#F3CF6F'],[500,'S','達人','#F3CF6F'],[380,'A','上級','#B48CFF'],[280,'B','中級','#5FD3FF'],[190,'C','初級','#3EE8A8'],[100,'D','見習い','#9AA3B8'],[0,'E','入門','#9AA3B8']];
-const rankOf=s=>RANKS.find(r=>s>=r[0]);
-const nextRank=s=>{const i=RANKS.findIndex(r=>s>=r[0]);return i>0?RANKS[i-1]:null};
+const ranksFor=im=>im==='kana'?RANKS_KANA:RANKS;
+const rankOf=(s,im)=>ranksFor(im).find(r=>s>=r[0]);
+const nextRank=(s,im)=>{const t=ranksFor(im);const i=t.findIndex(r=>s>=r[0]);return i>0?t[i-1]:null};
+const imOf=()=>TOUCH?(S.set.im||'kana'):'key';
+const imLabel=im=>im==='kana'?'フリック':im==='abc'?'画面ローマ字':im==='sys'?'キーボード':'';
 const scoreOf=(kpm,acc,maxCombo)=>Math.round(kpm*Math.pow(acc,3)*(1+Math.min(maxCombo,300)/1500));
 const priceOf=len=>len<=4?100:len<=7?200:len<=10?300:len<=14?500:800;
 const TIPS=['「し」は si でも shi でも、「ん」は n でも nn でも通ります。表示は打ち方に合わせて変わります。','正確率は3乗で効きます。速さより先に、ミスを減らすのが近道です。','ゴーストは自己ベストの走り。追い越すとレールの色が変わります。','弱点特訓は、ミスが多いキーと反応が遅いキーを両方狙います。','デイリー挑戦は日付で出題が決まるので、同じ日なら誰と競っても同じお題です。','Tab でお題を変えられます。Enter を押さずに、表示された語を打ち始めても始まります。','食べ放題はノーミスで語を打ち切るたびに時間が延びます。ミスをすると1秒減ります。','結果画面の「テキストをコピー」で、記録をそのままメモに残せます。','お題は山札のようにシャッフルされ、一巡するまで同じ語は出ません。','「ミックス」は日常語・カタカナ語・地名・ことわざなどを全部まぜた出題です。'];
@@ -1138,7 +1244,7 @@ const TIPS=['「し」は si でも shi でも、「ん」は n でも nn でも
 /* ---------- 保存 ---------- */
 const DB='senda.v1';
 const DEF=()=>({v:1,best:{},hist:[],daily:{},streak:{cur:0,best:0,last:null},keys:{},ach:{},total:{runs:0,keys:0,miss:0,sec:0,words:0,money:0},decks:{},help:false,mode:'sprint',deck:'mix',len:'all',bags:{},
-  set:{sfx:0.7,hat:1,shake:1,fx:1,kbd:!TOUCH,fingers:1,accent:'flash',romaji:'hepburn',size:'m',haptic:1,hints:1,mean:1,remind:{on:0,time:'20:00'}}});
+  set:{sfx:0.7,hat:1,shake:1,fx:1,kbd:!TOUCH,fingers:1,accent:'flash',romaji:'hepburn',size:'m',haptic:1,hints:1,mean:1,im:'kana',remind:{on:0,time:'20:00'}}});
 let S=DEF();
 try{const raw=localStorage.getItem(DB);if(raw){const o=JSON.parse(raw);S=Object.assign(DEF(),o);S.set=Object.assign(DEF().set,o.set||{});}}catch(e){}
 if(!DECKS[S.deck])S.deck='mix';if(!S.bags)S.bags={};
@@ -1252,7 +1358,7 @@ const KBD=(()=>{
 let SCREEN='home';
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$('scr-'+id).classList.add('on');SCREEN=id;
   const X=window.__SENDA;if(id==='home')renderHome();if(id==='stats'&&X.renderStats)X.renderStats();if(id==='ach'&&X.renderAch)X.renderAch();if(id==='set'&&X.renderSet)X.renderSet();
-  if(TOUCH&&(id==='play'||id==='home')){try{$('hid').focus({preventScroll:true})}catch(e){}}}
+  if(TOUCH&&(id==='play'||id==='home')&&imOf()==='sys'){try{$('hid').focus({preventScroll:true})}catch(e){}}}
 let toastT=0;function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2200)}
 function ovl(id,on){$(id).classList.toggle('on',!!on)}
 
@@ -1274,7 +1380,7 @@ function deckItems(mode,deck){if(mode==='daily')return dailyItems();return DECKS
 let dailyCache={d:null,items:null};
 function dailyItems(){const d=ymd();if(dailyCache.d===d)return dailyCache.items;const rnd=mulberry32(parseInt(d,10)^0x5E17DA);let all=[];MIX_DECKS.forEach(k=>all=all.concat(DECKS[k].items));dailyCache={d,items:shuffle(all,rnd)};return dailyCache.items}
 function renderHome(){
-  $('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button class="mode ${S.mode===k?'on':''}" data-m="${k}"><svg><use href="#${m.icon}"/></svg><span class="n">${m.name}</span><span class="s">${m.sub}</span></button>`).join('');
+  $('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button class="mode ${S.mode===k?'on':''} ${(k==='drill'&&imOf()==='kana')?'dis':''}" data-m="${k}"><svg><use href="#${m.icon}"/></svg><span class="n">${m.name}</span><span class="s">${m.sub}</span></button>`).join('');
   $('decks').innerHTML=DECK_ORDER.map(k=>`<button class="deck ${S.deck===k?'on':''} ${S.mode==='daily'?'dis':''}" data-d="${k}">${DECKS[k].name}<small>${DECKS[k].items.length}</small></button>`).join('');
   document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;save();renderHome();AU.resume()});
   document.querySelectorAll('.deck').forEach(b=>b.onclick=()=>{S.deck=b.dataset.d;save();renderHome()});
@@ -1283,12 +1389,12 @@ function renderHome(){
   $('start-lbl').textContent=S.mode==='free'?'この語を打てば、練習が始まる':S.mode==='drill'?'この語を打てば、特訓が始まる':'この語を打てば、すぐ始まる';
   pickHomeWord();
   // best
-  const b=S.best[bestKey(S.mode,S.deck,effLen(S.deck))];const bl=$('best');
+  const b=S.best[bestKey(S.mode,S.deck,effLen(S.deck),imOf())];const bl=$('best');
   bl.querySelector('.lbl').textContent=`${MODES[S.mode].name}${S.mode==='daily'?'':' / '+DECKS[S.deck].name+lenLabel(effLen(S.deck))} の自己ベスト`;
-  if(b){const rk=rankOf(b.score);$('best-score').textContent=S.mode==='buffet'?'¥'+fmt(b.money||0):fmt(b.score);$('best-rank').textContent=rk[2];$('best-rank').style.color=rk[3];$('best-sub').innerHTML=`<span>KPM ${fmt(b.kpm)}</span><span>正確率 ${b.acc.toFixed(1)}%</span><span>コンボ ${b.combo}</span><span>${ymdDash(b.date)}</span>`}
+  if(b){const rk=rankOf(b.score,b.im);$('best-score').textContent=S.mode==='buffet'?'¥'+fmt(b.money||0):fmt(b.score);$('best-rank').textContent=rk[2];$('best-rank').style.color=rk[3];$('best-sub').innerHTML=`<span>KPM ${fmt(b.kpm)}</span><span>正確率 ${b.acc.toFixed(1)}%</span><span>コンボ ${b.combo}</span><span>${ymdDash(b.date)}</span>`}
   else{$('best-score').textContent='—';$('best-rank').textContent='';$('best-sub').innerHTML='<span>まだ記録がありません</span>'}
   // level pill = highest rank
-  const hi=Object.values(S.best).reduce((m,x)=>Math.max(m,x.score||0),0);const hr=rankOf(hi);
+  const cim=imOf();const bs=Object.values(S.best).filter(x=>(x.im||'key')===cim);const hi=bs.reduce((m,x)=>Math.max(m,x.score||0),0);const hr=rankOf(hi,cim);
   $('lvpill').innerHTML=`<span class="lv">${hi?hr[1]:'—'}</span><span class="ttl">${hi?hr[2]:'はじめの一打'}</span>`;
   $('streak').querySelector('span').textContent=`${streakNow()}日`;
   // daily
@@ -1299,12 +1405,12 @@ function renderHome(){
   $('tips').textContent=TIPS[(new Date().getDate()+S.total.runs)%TIPS.length];
   $('ime').classList.remove('on');
 }
-function bestKey(mode,deck,len){return mode==='daily'?'daily:mix':`${mode}:${deck}${len&&len!=='all'?'|'+len:''}`}
+function bestKey(mode,deck,len,im){const suf=(im&&im!=='key')?'@'+im:'';return (mode==='daily'?'daily:mix':`${mode}:${deck}${len&&len!=='all'?'|'+len:''}`)+suf}
 function streakNow(){const s=S.streak;if(!s.last)return 0;const t=ymd();const y=ymd(new Date(Date.now()-864e5));return(s.last===t||s.last===y)?s.cur:0}
 function renderCal(){const el=$('cal');let h='';const t=new Date();for(let i=41;i>=0;i--){const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i);const k=ymd(d);const r=S.daily[k];const played=S.hist.some(x=>x.date===k);let c=r?(r.score>=500?'l3':r.score>=280?'l2':'l1'):played?'l1':'';h+=`<i class="${c} ${i===0?'today':''}" title="${ymdDash(k)}${r?' 本番 '+r.score:played?' プレイ':''}"></i>`}el.innerHTML=h}
 
 /* expose for part B */
-window.__SENDA={$,clamp,fmt,pad,ymd,ymdDash,now,NATIVE,TOUCH,REDUCE,DECK_ORDER,MIX_DECKS,deckName,bagPeek,bagTake,pool,effLen,bagKey,lenLabel,lenOk,MODES,RANKS,rankOf,nextRank,scoreOf,priceOf,S,save,mulberry32,shuffle,makeTyper,romajiLen,AU,haptic,FX,KBD,show,toast,ovl,renderRomaji,renderKana,updKana,pickHomeWord,deckItems,dailyItems,renderHome,bestKey,streakNow,applyAccent,getHome:()=>({typer:homeTyper,item:homeItem}),getScreen:()=>SCREEN};
+window.__SENDA={$,clamp,fmt,pad,ymd,ymdDash,now,NATIVE,TOUCH,REDUCE,DECK_ORDER,MIX_DECKS,deckName,bagPeek,bagTake,imOf,imLabel,ranksFor,pool,effLen,bagKey,lenLabel,lenOk,MODES,RANKS,rankOf,nextRank,scoreOf,priceOf,S,save,mulberry32,shuffle,makeTyper,romajiLen,AU,haptic,FX,KBD,show,toast,ovl,renderRomaji,renderKana,updKana,pickHomeWord,deckItems,dailyItems,renderHome,bestKey,streakNow,applyAccent,getHome:()=>({typer:homeTyper,item:homeItem}),getScreen:()=>SCREEN};
 })();
 </script>
 <script>
@@ -1312,6 +1418,69 @@ window.__SENDA={$,clamp,fmt,pad,ymd,ymdDash,now,NATIVE,TOUCH,REDUCE,DECK_ORDER,M
 'use strict';
 const X=window.__SENDA;const {$,clamp,fmt,ymd,ymdDash,now,TOUCH,REDUCE,DECK_ORDER,MODES,RANKS,rankOf,nextRank,scoreOf,priceOf,S,save,shuffle,makeTyper,AU,haptic,FX,KBD,show,toast,ovl,renderRomaji,renderKana,updKana}=X;
 const MILESTONES=[10,25,50,100,150,200,300,500];
+
+/* ---------- スマホ用の画面キーボード（フリック入力 / ローマ字入力） ----------
+   Simeji や iOS と同じ12キー配置。中央タップ＝あ段、左＝い段、上＝う段、右＝え段、下＝お段。
+   「小゛゜」キーで直前のかなを濁点・半濁点・小文字に切り替える。 */
+const MKB=(()=>{
+  const PAD=[
+    {k:'a',c:'あ',f:['い','う','え','お']},{k:'ka',c:'か',f:['き','く','け','こ']},{k:'sa',c:'さ',f:['し','す','せ','そ']},
+    {k:'ta',c:'た',f:['ち','つ','て','と']},{k:'na',c:'な',f:['に','ぬ','ね','の']},{k:'ha',c:'は',f:['ひ','ふ','へ','ほ']},
+    {k:'ma',c:'ま',f:['み','む','め','も']},{k:'ya',c:'や',f:['','ゆ','','よ']},{k:'ra',c:'ら',f:['り','る','れ','ろ']},
+    {k:'mod',c:'小゛゜',mod:1},{k:'wa',c:'わ',f:['を','ん','ー','']},{k:'pun',c:'、',f:['。','？','！','']}
+  ];
+  const ABC=['qwertyuiop','asdfghjkl','zxcvbnm'];
+  const DIRS=['left','up','right','down'];
+  let root=null,guide=null,mode='kana',last=null,cb={},active=null,sx=0,sy=0,dir='c';
+  function html(){
+    const kana=PAD.map((p,i)=>`<button class="mk${p.mod?' mod':''}" data-i="${i}" style="grid-column:${i%3+1};grid-row:${Math.floor(i/3)+1}">${p.c}</button>`).join('')
+      +`<button class="mk fn" data-fn="abc" style="grid-column:4;grid-row:1/3">ABC</button>`
+      +`<button class="mk fn" data-fn="pause" style="grid-column:4;grid-row:3/5" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button>`;
+    const abc=ABC.map(r=>`<div class="mkb-row">${[...r].map(c=>`<button class="mk ab" data-c="${c}">${c}</button>`).join('')}</div>`).join('')
+      +`<div class="mkb-row"><button class="mk fn" data-fn="kana">かな</button><button class="mk ab wide" data-c=" ">␣</button><button class="mk ab" data-c="-">-</button><button class="mk fn" data-fn="pause" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button></div>`;
+    return `<div class="mkb-kana" id="mkb-kana">${kana}</div><div class="mkb-abc" id="mkb-abc" hidden>${abc}</div><div class="mkb-guide" id="mkb-guide" hidden></div>`;
+  }
+  function dirOf(dx,dy){const d=Math.hypot(dx,dy);if(d<22)return 'c';return Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down')}
+  function charFor(p,d){if(p.mod)return null;if(d==='c')return p.c;const i=DIRS.indexOf(d);return (p.f&&p.f[i])||''}
+  function showGuide(el,p){
+    if(p.mod){guide.hidden=true;return}
+    const r=el.getBoundingClientRect();
+    const cells=['blank',p.f[1]||'','blank',p.f[0]||'',p.c,p.f[2]||'','blank',p.f[3]||'','blank'];
+    guide.innerHTML=cells.map((c,i)=>(i%2===0&&i!==4)?'<span class="gc blank"></span>':`<span class="gc" data-d="${i===1?'up':i===3?'left':i===4?'c':i===5?'right':'down'}">${c}</span>`).join('');
+    guide.style.left=(r.left+r.width/2)+'px';guide.style.top=(r.top-r.height*0.6)+'px';guide.hidden=false;paintGuide('c');
+  }
+  function paintGuide(d){if(guide.hidden)return;[...guide.querySelectorAll('.gc')].forEach(g=>g.classList.toggle('on',g.dataset.d===d))}
+  function down(e){
+    const b=e.target.closest('.mk');if(!b)return;e.preventDefault();
+    if(b.dataset.fn){active={fn:b.dataset.fn,el:b};b.classList.add('on');return}
+    if(b.dataset.c!==undefined){active={ch:b.dataset.c,el:b};b.classList.add('on');return}
+    const p=PAD[+b.dataset.i];active={p,el:b};sx=e.clientX;sy=e.clientY;dir='c';b.classList.add('on');showGuide(b,p);
+  }
+  function move(e){if(!active||!active.p||active.p.mod)return;e.preventDefault();dir=dirOf(e.clientX-sx,e.clientY-sy);paintGuide(dir)}
+  function up(e){
+    if(!active)return;e.preventDefault();const a=active;active=null;guide.hidden=true;a.el.classList.remove('on');
+    if(a.fn==='abc'){setMode('abc');return}
+    if(a.fn==='kana'){setMode('kana');return}
+    if(a.fn==='pause'){cb.onPause&&cb.onPause();return}
+    if(a.ch!==undefined){cb.onChar&&cb.onChar(a.ch);return}
+    const p=a.p;
+    if(p.mod){const n=last?Romaji.kanaCycle(last):null;if(n){last=n;cb.onKana&&cb.onKana(n)}else{cb.onKana&&cb.onKana(null)}return}
+    const ch=charFor(p,dir);if(!ch)return;last=ch;cb.onKana&&cb.onKana(ch);
+  }
+  function cancel(){if(!active)return;active.el.classList.remove('on');active=null;guide.hidden=true}
+  function setMode(m){mode=m;if(!root)return;$('mkb-kana').hidden=m!=='kana';$('mkb-abc').hidden=m!=='abc';cb.onMode&&cb.onMode(m)}
+  return{
+    mount(el,handlers){root=el;cb=handlers||{};root.innerHTML=html();guide=$('mkb-guide');
+      root.addEventListener('pointerdown',down);root.addEventListener('pointermove',move);
+      root.addEventListener('pointerup',up);root.addEventListener('pointercancel',cancel);root.addEventListener('lostpointercapture',cancel);
+      root.addEventListener('contextmenu',e=>e.preventDefault());setMode(mode)},
+    show(m){if(!root)return;if(m)setMode(m);root.hidden=false;$('scr-play').classList.add('kbon')},
+    hide(){if(!root)return;root.hidden=true;guide.hidden=true;$('scr-play').classList.remove('kbon')},
+    reset(){last=null},
+    mode:()=>mode,
+    setMode
+  };
+})();
 const CIRC=175.9;
 let R=null,paused=false,raf=0,lastUi=0,lastRes=null;
 
@@ -1328,6 +1497,9 @@ function startRun(mode,deck,opts={}){
   AU.resume();AU.hatStop();
   if(!window.DECKS[deck])deck='mix';
   const len=mode==='daily'?'all':(opts.len&&X.lenOk(deck,opts.len)?opts.len:X.effLen(deck));
+  let im=X.imOf();
+  if(im==='kana'&&mode!=='daily'&&deck==='english'){im='abc';toast('English はローマ字キーボードで打ちます')}
+  if(im==='kana'&&mode==='drill'){toast('弱点特訓はローマ字入力のモードです');return}
   let weak=null,src;
   if(mode==='daily'){src={list:X.dailyItems().slice(),i:0,refill:()=>X.dailyItems()}}
   else if(mode==='drill'){weak=opts.weak||weakKeys(5).map(x=>x[0]);if(!weak.length){toast('弱点を判定するには、まず数回プレイしてください');return}
@@ -1335,9 +1507,9 @@ function startRun(mode,deck,opts={}){
     if(opts.first){const i=list.findIndex(it=>it[0]===opts.first[0]);if(i>=0)list.splice(i,1);list.unshift(opts.first)}
     src={list,i:0,refill:pool}}
   else src={deck:X.bagKey(deck,len)};
-  R={mode,deck,len,src,typer:null,item:null,started:false,startAt:0,pausedTotal:0,pauseAt:0,elapsed:0,bonus:0,ended:false,correct:0,miss:0,combo:0,maxCombo:0,words:0,wordMiss:0,money:0,samples:[0],keys:{},lastOk:0,firstKey:true,tier:0,official:false,weak,ghost:null,ghostMax:0,timeMax:0};
+  R={mode,deck,len,im,kana:false,src,typer:null,item:null,started:false,startAt:0,pausedTotal:0,pauseAt:0,elapsed:0,bonus:0,ended:false,correct:0,miss:0,combo:0,maxCombo:0,words:0,wordMiss:0,money:0,samples:[0],keys:{},lastOk:0,firstKey:true,tier:0,official:false,weak,ghost:null,ghostMax:0,timeMax:0};
   if(mode==='daily')R.official=!S.daily[ymd()];
-  const b=S.best[X.bestKey(mode,deck,len)];if(MODES[mode].ghost&&b&&b.ghost&&b.ghost.length>5){R.ghost=b.ghost;R.ghostMax=b.ghost[b.ghost.length-1]}
+  const b=S.best[X.bestKey(mode,deck,len,im)];if(MODES[mode].ghost&&b&&b.ghost&&b.ghost.length>5){R.ghost=b.ghost;R.ghostMax=b.ghost[b.ghost.length-1]}
   paused=false;
   $('p-mode').textContent=MODES[mode].name+(mode==='daily'?(R.official?'・本番':'・練習'):'');
   $('p-deck').textContent=mode==='daily'?'日替わり':X.deckName(deck)+X.lenLabel(len);
@@ -1347,10 +1519,11 @@ function startRun(mode,deck,opts={}){
   $('combo').className='combo';$('combo-n').textContent='0';$('heat').className='heat';
   $('ghost').classList.toggle('on',!!R.ghost);if(R.ghost){$('g-me').style.width='0%';$('g-gm').style.left='0%';$('g-mine').textContent='0';$('g-diff').textContent='ゴースト（自己ベスト）';$('g-diff').className='diff'}
   $('s-wt').classList.remove('on');$('float').classList.remove('on');$('ring').classList.remove('on');
-  $('startnote').innerHTML=(TOUCH?'画面をタップするとキーボードが出ます<br>':'')+(mode==='drill'?`狙うキー <b>${weak.join('  ')}</b> ・ 打ち始めるとスタート`:mode==='free'?`打ち始めると計測開始 ・ ${TOUCH?'左上のボタン':'<b>Esc</b>'}で終了して結果を見る`:`打ち始めると<b>スタート</b>`);
+  $('startnote').innerHTML=((TOUCH&&im==='sys')?'画面をタップするとキーボードが出ます<br>':'')+(mode==='drill'?`狙うキー <b>${weak.join('  ')}</b> ・ 打ち始めるとスタート`:mode==='free'?`打ち始めると計測開始 ・ ${TOUCH?'左上のボタン':'<b>Esc</b>'}で終了して結果を見る`:`打ち始めると<b>スタート</b>`);
   $('ime-play').hidden=true;
   $('p-foot-l').innerHTML=TOUCH?'左上のボタンで一時停止・終了':'<kbd>Esc</kbd> 一時停止 / やめる';
   $('kbd').classList.toggle('hide',!S.set.kbd||TOUCH);KBD.resetHints();
+  if(im==='kana'||im==='abc'){MKB.show(im==='kana'?'kana':'abc')}else MKB.hide();
   $('p-foot-r').innerHTML=TOUCH?'':'<kbd>Tab</kbd> キーボード表示切替';
   nextWord(false);
   show('play');
@@ -1359,16 +1532,23 @@ function startRun(mode,deck,opts={}){
 function srcTake(){const s=R.src;if(s.deck)return X.bagTake(s.deck);if(s.i>=s.list.length)s.list=s.list.concat(s.refill());return s.list[s.i++]}
 function srcPeek(){const s=R.src;if(s.deck)return X.bagPeek(s.deck);return s.list[s.i]||null}
 function nextWord(anim){
-  R.item=srcTake();R.typer=makeTyper(R.item[1]);R.wordMiss=0;R.firstKey=true;
+  R.item=srcTake();R.wordMiss=0;R.firstKey=true;
+  R.kana=R.im==='kana'&&Romaji.kanaTypeable(R.item[1]);
+  R.typer=R.kana?Romaji.createKanaTyper(R.item[1]):makeTyper(R.item[1]);
+  if(R.im!=='key')MKB.reset();
   const en=(R.mode!=='daily'&&R.deck==='english');
   $('s-text').textContent=R.item[0];$('s-text').classList.toggle('en',en);
-  if(en)$('s-kana').innerHTML='';else renderKana($('s-kana'),R.typer.kana,0);
+  $('s-ro').classList.toggle('hide',!!R.kana);
+  if(en)$('s-kana').innerHTML='';else if(R.kana)paintKana();else renderKana($('s-kana'),R.typer.kana,0);
   $('s-mean').textContent=S.set.mean&&R.item[2]?R.item[2]:'';
-  const nk=renderRomaji($('s-ro'),R.typer);
+  const nk=R.kana?'':renderRomaji($('s-ro'),R.typer);
   const nx=srcPeek();$('s-next').innerHTML=nx?`次　<b>${nx[0]}</b>`:'';
   if(anim){const st=$('stage');st.classList.remove('swap');void st.offsetWidth;st.classList.add('swap')}
-  KBD.setNext(nk,R.mode==='drill'&&S.set.hints);
+  if(!R.kana)KBD.setNext(nk,R.mode==='drill'&&S.set.hints);
 }
+function paintKana(){const t=R.typer,el=$('s-kana'),idx=t.kanaIndex(),p=t.pending?t.pending():null;let h='';
+  for(let i=0;i<t.kana.length;i++){const pend=(i===idx&&p);h+=`<span class="${i<idx?'d':i===idx?'c':''}${pend?' pend':''}">${pend?p:t.kana[i]}</span>`}
+  el.innerHTML=h}
 function setTier(){const c=R.combo;const t=c>=200?4:c>=100?3:c>=50?2:c>=10?1:0;const el=$('combo');el.className='combo'+(c>=5?' on':'')+(t?' t'+t:'');$('heat').className='heat'+(c>=100?' t3':c>=50?' t2':c>=25?' t1':'');
   if(c>=25)AU.hatStart();else AU.hatStop();R.tier=t}
 const tierColor=()=>R.combo>=200?'#F3CF6F':R.combo>=100?'#FF5A6E':R.combo>=50?'#FFB547':FX.accent();
@@ -1378,31 +1558,33 @@ function handleChar(ch){
   if(!R||R.ended||paused)return;
   {const iw=$('ime-play');if(!iw.hidden)iw.hidden=true}
   if(!R.started){R.started=true;R.startAt=now();R.lastOk=0;$('startnote').textContent='';raf=requestAnimationFrame(loop)}
-  const tl=R.typer.typedLength();const expected=R.typer.romajiDisplay()[tl]||'';
-  const res=R.typer.input(ch);const t=now();
+  const km=R.kana;
+  const tl=km?0:R.typer.typedLength();const expected=km?(R.typer.expected()||'･'):(R.typer.romajiDisplay()[tl]||'');
+  const res=(km&&ch===null)?'miss':R.typer.input(ch);const t=now();
   const st=R.keys[expected]||(R.keys[expected]={n:0,m:0,lat:0});st.n++;
   if(res==='miss'){
     st.m++;R.miss++;R.wordMiss++;
     if(R.combo>=10){const n=$('combo-n');n.classList.remove('fall','burst');void n.offsetWidth;n.classList.add('fall');setTimeout(()=>{n.classList.remove('fall')},460)}
     R.combo=0;setTier();$('combo-n').textContent='0';
-    FX.shake();FX.vig();AU.miss();haptic('medium');KBD.hit(ch,false);
-    const cur=$('s-ro').children[tl];if(cur){cur.classList.remove('bad');void cur.offsetWidth;cur.classList.add('bad')}
+    FX.shake();FX.vig();AU.miss();haptic('medium');if(!km)KBD.hit(ch,false);
+    const cur=km?$('s-kana').children[R.typer.kanaIndex()]:$('s-ro').children[tl];if(cur){cur.classList.remove('bad');void cur.offsetWidth;cur.classList.add('bad')}
     if(R.mode==='buffet'){R.bonus-=1;FX.float('-1秒','#FF5A6E')}
   }else{
     R.correct++;R.combo++;if(R.combo>R.maxCombo)R.maxCombo=R.combo;
     if(!R.firstKey&&R.lastOk&&(t-R.lastOk)<1500){const lat=t-R.lastOk;st.lat=st.lat?st.lat*.7+lat*.3:lat}
     R.lastOk=t;R.firstKey=false;
-    AU.tick(R.combo);haptic('light');KBD.hit(ch,true);
-    const cur=$('s-ro').children[tl];FX.at(cur,3+Math.min(4,Math.floor(R.combo/50)),tierColor(),3.5,2);
+    AU.tick(R.combo);haptic('light');if(!km)KBD.hit(ch,true);
+    const cur=km?$('s-kana').children[R.typer.kanaIndex()]:$('s-ro').children[tl];FX.at(cur,3+Math.min(4,Math.floor(R.combo/50)),tierColor(),3.5,2);
     $('combo-n').textContent=R.combo;setTier();
     if(MILESTONES.includes(R.combo)){const n=$('combo-n');n.classList.remove('burst');void n.offsetWidth;n.classList.add('burst');FX.ring();if(R.combo>=50)FX.flash();AU.milestone(MILESTONES.indexOf(R.combo));haptic('heavy');FX.burst(cur,18,tierColor())}
     if(res==='done'){
-      R.words++;const len=R.typer.romajiDisplay().length;
+      R.words++;const len=km?R.typer.kana.length*2:R.typer.romajiDisplay().length;
       AU.word(R.words);FX.burst($('s-text'),14,tierColor());
       if(R.mode==='buffet'){const price=priceOf(len);R.money+=price;let bonus=0;if(R.wordMiss===0){bonus=0.4+len*0.09;R.bonus+=bonus}FX.float(`+${price}円${bonus?`  +${bonus.toFixed(1)}秒`:''}`,'#F3CF6F');$('p-score').textContent='¥'+fmt(R.money)}
       else FX.float(R.wordMiss===0?'PERFECT':'+'+len,R.wordMiss===0?'#F3CF6F':FX.accent());
       nextWord(true);
-    }else{
+    }else if(km){paintKana();}
+    else{
       const nk=renderRomaji($('s-ro'),R.typer,tl);
       if(R.deck!=='english'||R.mode==='daily')updKana($('s-kana'),R.typer.kanaIndex());
       KBD.setNext(nk,R.mode==='drill'&&S.set.hints);
@@ -1441,32 +1623,33 @@ function pause(){if(!R||R.ended||paused)return;paused=true;R.pauseAt=now();AU.ha
 function resume(){if(!paused)return;ovl('ovl-pause',false);
   if(!R.started){paused=false;return}
   let n=3;const cdEl=$('cd');ovl('ovl-cd',true);const step=()=>{if(n>0){cdEl.textContent=n;cdEl.style.animation='none';void cdEl.offsetWidth;cdEl.style.animation='';AU.count(n);n--;setTimeout(step,650)}else{ovl('ovl-cd',false);R.pausedTotal+=now()-R.pauseAt;paused=false;AU.count(0);if(R.combo>=25)AU.hatStart()}};step()}
-function quitToHome(){if(R){R.ended=true;cancelAnimationFrame(raf)}save();AU.hatStop();paused=false;ovl('ovl-pause',false);show('home')}
+function quitToHome(){if(R){R.ended=true;cancelAnimationFrame(raf)}save();MKB.hide();AU.hatStop();paused=false;ovl('ovl-pause',false);show('home')}
 
 /* ---------- 終了・結果 ---------- */
 function finish(){
   if(!R||R.ended)return;R.ended=true;cancelAnimationFrame(raf);AU.hatStop();AU.timeout();FX.flash();haptic('heavy');
   const st=$('stage');st.style.transition='transform .45s cubic-bezier(.2,.8,.2,1),opacity .45s';st.style.transform='scale(1.04)';st.style.opacity='.35';
+  MKB.hide();
   setTimeout(()=>{st.style.transition='';st.style.transform='';st.style.opacity='';showResult()},520);
 }
 function showResult(){
   const r=R;const elapsed=Math.max(1,r.elapsed);const tot=r.correct+r.miss;const acc=tot?r.correct/tot:1;const kpm=r.correct/(elapsed/60);
-  const score=scoreOf(kpm,acc,r.maxCombo);const ranked=r.mode!=='free'||elapsed>=30;const rk=ranked?rankOf(score):['—','—','練習','#9AA3B8'];
-  const rec={mode:r.mode,deck:r.mode==='daily'?'daily':r.deck,len:r.len||'all',score,kpm:Math.round(kpm),acc:Math.round(acc*1000)/10,combo:r.maxCombo,words:r.words,correct:r.correct,miss:r.miss,sec:Math.round(elapsed),money:r.money,date:ymd(),soft:TOUCH,official:r.official};
+  const score=scoreOf(kpm,acc,r.maxCombo);const ranked=r.mode!=='free'||elapsed>=30;const rk=ranked?rankOf(score,r.im):['—','—','練習','#9AA3B8'];
+  const rec={mode:r.mode,deck:r.mode==='daily'?'daily':r.deck,len:r.len||'all',im:r.im||'key',score,kpm:Math.round(kpm),acc:Math.round(acc*1000)/10,combo:r.maxCombo,words:r.words,correct:r.correct,miss:r.miss,sec:Math.round(elapsed),money:r.money,date:ymd(),soft:TOUCH,official:r.official};
   const valid=r.correct>=10;
   let isNew=false;
   if(valid){
     S.hist.unshift(rec);S.hist=S.hist.slice(0,120);
     S.total.runs++;S.total.keys+=r.correct;S.total.miss+=r.miss;S.total.sec+=Math.round(elapsed);S.total.words+=r.words;S.total.money+=r.money;
     if(r.mode!=='daily')S.decks[r.deck]=1;
-    if(r.mode!=='free'){const k=X.bestKey(r.mode,r.deck,r.len);const b=S.best[k];const better=!b||(r.mode==='buffet'?r.money>(b.money||0):score>b.score);
+    if(r.mode!=='free'){const k=X.bestKey(r.mode,r.deck,r.len,r.im);const b=S.best[k];const better=!b||(r.mode==='buffet'?r.money>(b.money||0):score>b.score);
       if(better){isNew=true;S.best[k]=Object.assign({},rec,{ghost:MODES[r.mode].ghost?r.samples.slice(0,(MODES[r.mode].time||0)+1):undefined})}}
     if(r.mode==='daily'&&r.official)S.daily[ymd()]=rec;
     const t=ymd(),y=ymd(new Date(Date.now()-864e5));if(S.streak.last!==t){S.streak.cur=(S.streak.last===y)?S.streak.cur+1:1;S.streak.last=t;S.streak.best=Math.max(S.streak.best,S.streak.cur)}
-    Object.entries(r.keys).forEach(([k,v])=>{if(!KEYRE.test(k))return;const s=S.keys[k]||(S.keys[k]={n:0,m:0,lat:0});s.n+=v.n;s.m+=v.m;if(v.lat)s.lat=s.lat?s.lat*.6+v.lat*.4:v.lat});
+    if(r.im!=='kana')Object.entries(r.keys).forEach(([k,v])=>{if(!KEYRE.test(k))return;const s=S.keys[k]||(S.keys[k]={n:0,m:0,lat:0});s.n+=v.n;s.m+=v.m;if(v.lat)s.lat=s.lat?s.lat*.6+v.lat*.4:v.lat});
     save();
   }
-  lastRes={rec,rk,isNew,valid,deckName:r.mode==='daily'?'日替わり':X.deckName(r.deck)+X.lenLabel(r.len)};
+  lastRes={rec,rk,isNew,valid,deckName:(r.mode==='daily'?'日替わり':X.deckName(r.deck)+X.lenLabel(r.len))+(r.im&&r.im!=='key'?'・'+X.imLabel(r.im):'')};
   $('b-x').href=xUrl();
   // ---- UI ----
   $('r-mode').textContent=MODES[r.mode].name+(r.mode==='daily'?(r.official?'・本番':'・練習'):'');$('r-deck').textContent=lastRes.deckName;
@@ -1474,7 +1657,7 @@ function showResult(){
   $('r-grade').textContent=ranked?'RANK '+rk[1]+(valid?'':'（参考）'):'PRACTICE';
   const stamp=$('r-stamp');stamp.classList.remove('on');stamp.textContent=rk[1]==='SSS'?'閃':'疾';if(rk[1]==='SSS'||rk[1]==='SS'){void stamp.offsetWidth;stamp.classList.add('on')}
   $('r-new').classList.toggle('on',isNew&&valid);
-  const nr=nextRank(score);let nx=nr?`次のランク「${nr[2]}」まで あと <b>${fmt(nr[0]-score)}</b>`:'最高位に到達';
+  const nr=nextRank(score,r.im);let nx=nr?`次のランク「${nr[2]}」まで あと <b>${fmt(nr[0]-score)}</b>`:'最高位に到達';
   if(r.miss>0){const perfect=scoreOf(kpm,1,r.maxCombo);nx+=`<br>ミス0なら <b>+${fmt(perfect-score)}</b>`}
   if(!ranked)nx='30秒以上続けるとランクが付きます';
   if(!valid)nx='10打以上で記録されます';
@@ -1529,7 +1712,7 @@ function renderStats(){
     const rl=RANKS.filter(r=>r[0]>0&&r[0]<=mx).map(r=>`<line x1="${P}" y1="${py(r[0])}" x2="${W-P}" y2="${py(r[0])}" stroke="${r[3]}" stroke-opacity=".35" stroke-dasharray="3 4"/><text x="${W-P+4}" y="${py(r[0])+3}" fill="${r[3]}">${r[1]}</text>`).join('');
     chart=`<svg class="chart" viewBox="0 0 ${W+30} ${H}">${grid}${rl}<path class="ar" d="${d} L${pts[pts.length-1][0]} ${H-P} L${pts[0][0]} ${H-P}Z"/><path class="ln" d="${d}"/>${pts.map((p,i)=>`<circle class="pt ${i===pts.length-1?'last':''}" cx="${p[0]}" cy="${p[1]}" r="${i===pts.length-1?4:2.5}"><title>${ymdDash(hist[i].date)} ${MODES[hist[i].mode].name} ${hist[i].score}</title></circle>`).join('')}</svg>`}
   const bests=Object.entries(S.best).sort((a,b)=>b[1].score-a[1].score);
-  const bt=bests.length?`<table class="tbl"><tr><th>モード</th><th>お題</th><th>スコア</th><th>ランク</th><th>KPM</th><th>正確率</th><th>コンボ</th><th>日付</th></tr>${bests.map(([k,b])=>{const rk=rankOf(b.score);return`<tr><td>${MODES[b.mode].name}</td><td>${b.mode==='daily'?'日替わり':X.deckName(b.deck)+X.lenLabel(b.len)}</td><td class="num">${b.mode==='buffet'?'¥'+fmt(b.money||0):fmt(b.score)}</td><td class="rk" style="color:${rk[3]}">${rk[2]}</td><td class="num">${fmt(b.kpm)}</td><td class="num">${b.acc.toFixed(1)}%</td><td class="num">${b.combo}</td><td class="num">${ymdDash(b.date)}</td></tr>`}).join('')}</table>`:'<div class="empty">まだ記録がありません</div>';
+  const bt=bests.length?`<table class="tbl"><tr><th>モード</th><th>お題</th><th>スコア</th><th>ランク</th><th>KPM</th><th>正確率</th><th>コンボ</th><th>日付</th></tr>${bests.map(([k,b])=>{const rk=rankOf(b.score,b.im);return`<tr><td>${MODES[b.mode].name}</td><td>${(b.mode==='daily'?'日替わり':X.deckName(b.deck)+X.lenLabel(b.len))+((b.im&&b.im!=='key')?'・'+X.imLabel(b.im):'')}</td><td class="num">${b.mode==='buffet'?'¥'+fmt(b.money||0):fmt(b.score)}</td><td class="rk" style="color:${rk[3]}">${rk[2]}</td><td class="num">${fmt(b.kpm)}</td><td class="num">${b.acc.toFixed(1)}%</td><td class="num">${b.combo}</td><td class="num">${ymdDash(b.date)}</td></tr>`}).join('')}</table>`:'<div class="empty">まだ記録がありません</div>';
   const wk=weakKeys(6);
   const weak=wk.length?`<div class="keys" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${wk.map(([k,w,v])=>`<span class="wk"><b>${k}</b><span>${(v.m/v.n*100).toFixed(0)}%</span>${v.lat?`<span style="color:var(--tx3)">${Math.round(v.lat)}ms</span>`:''}</span>`).join('')}</div><div class="row" style="margin-top:12px"><button class="btn pri" id="b-drill-stats"><svg><use href="#i-target"/></svg>この弱点を特訓する</button><span class="tips">ミス率と反応の遅さから判定</span></div>`:'<div class="empty">キーごとの傾向が出るまで、あと数回プレイしてください</div>';
   const recent=S.hist.slice(0,12);
@@ -1571,6 +1754,7 @@ function renderSet(){
     ${sw('fingers','運指の色分け','小指・薬指・中指・人差し指を色で示す')}
     ${sw('hints','特訓のヒント減衰','同じキーを3回続けて正しく打つと光らなくなる')}
     ${sw('mean','ことわざ・四字熟語の意味を表示','打つ語の下に意味を出す（350語）')}
+    ${TOUCH?`<div class="srow"><div><div class="t">入力方式</div><div class="d">フリックは画面の12キー。ローマ字も画面キーボードで打てます</div></div><div class="seg" id="seg-im"><button data-v="kana" class="${(S.set.im||'kana')==='kana'?'on':''}">フリック</button><button data-v="abc" class="${S.set.im==='abc'?'on':''}">ローマ字</button><button data-v="sys" class="${S.set.im==='sys'?'on':''}">外付け</button></div></div>`:''}
    </div>
    ${canRemind()?`<div class="card">
     <div class="h2">毎日のリマインド</div>
@@ -1595,6 +1779,7 @@ function renderSet(){
   $('s-sfx').oninput=e=>{AU.setVol(parseFloat(e.target.value));save();AU.resume();AU.tick(12)};
   document.querySelectorAll('#set-body .sw[data-k]').forEach(b=>b.onclick=()=>{S.set[b.dataset.k]=S.set[b.dataset.k]?0:1;save();renderSet()});
   document.querySelectorAll('#sw-acc .swatch').forEach(b=>b.onclick=()=>{S.set.accent=b.dataset.a;X.applyAccent();save();renderSet()});
+  document.querySelectorAll('#seg-im button').forEach(b=>b.onclick=()=>{S.set.im=b.dataset.v;save();renderSet();if(X.setHelpText)X.setHelpText();toast(b.dataset.v==='sys'?'端末のキーボードで打ちます':'画面のキーボードで打ちます')});
   document.querySelectorAll('#seg-ro button').forEach(b=>b.onclick=()=>{S.set.romaji=b.dataset.v;save();renderSet()});
   document.querySelectorAll('#seg-sz button').forEach(b=>b.onclick=()=>{S.set.size=b.dataset.v;X.applyAccent();save();renderSet()});
   $('b-exp').onclick=()=>{copyText(JSON.stringify(S)).then(()=>toast('コピーしました'))};
@@ -1690,8 +1875,8 @@ document.addEventListener('keydown',e=>{
 const hid=$('hid');
 hid.addEventListener('input',e=>{if(e.isComposing)return;const data=e.data!=null?e.data:hid.value;hid.value='';if(!data)return;AU.resume();for(const ch of data)onChar(ch)});
 hid.addEventListener('compositionstart',imeWarn);
-if(TOUCH){['stage','start','pbody'].forEach(id=>$(id).addEventListener('touchend',e=>{hid.focus({preventScroll:true})}));
-  hid.addEventListener('blur',()=>{if(X.getScreen()==='play'&&R&&!R.ended)$('tap').classList.add('on')});hid.addEventListener('focus',()=>$('tap').classList.remove('on'));
+if(TOUCH){['stage','start','pbody'].forEach(id=>$(id).addEventListener('touchend',e=>{if(X.imOf()==='sys')hid.focus({preventScroll:true})}));
+  hid.addEventListener('blur',()=>{if(X.getScreen()==='play'&&R&&!R.ended&&X.imOf()==='sys')$('tap').classList.add('on')});hid.addEventListener('focus',()=>$('tap').classList.remove('on'));
   $('tap').addEventListener('touchend',e=>{e.preventDefault();hid.focus({preventScroll:true})})}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&R&&R.started&&!R.ended&&!paused)pause()});
 function retry(){if(!lastRes)return show('home');const m=lastRes.rec.mode;startRun(m,m==='daily'?S.deck:lastRes.rec.deck,{weak:R&&R.weak,len:lastRes.rec.len})}
@@ -1712,7 +1897,12 @@ $('start').addEventListener('click',()=>{AU.resume();if(TOUCH)hid.focus({prevent
 
 /* ---------- 起動 ---------- */
 KBD.mount($('kbd'));
-if(TOUCH){$('help-ime-t').textContent='英語キーボードで';$('help-ime-p').textContent='キーボードを英語（ABC）に切り替えて打ちます。日本語キーボードのままだと入力できません。「し」は si でも shi でも、「ん」は n でも nn でも、どの打ち方でも通ります。';$('ime').innerHTML=IME_MSG}
+MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH){S.set.im=m;save();if(X.setHelpText)X.setHelpText()}}});
+if(TOUCH){
+  const setHelp=()=>{const im=X.imOf();
+    if(im==='sys'){$('help-ime-t').textContent='英語キーボードで';$('help-ime-p').textContent='端末のキーボードを英語（ABC）に切り替えて打ちます。日本語キーボードのままだと入力できません。設定で画面のキーボードに変えられます。';$('hint-touch').textContent='語をタップするとキーボードが出ます'}
+    else{$('help-ime-t').textContent='画面のキーボードで';$('help-ime-p').textContent=im==='abc'?'画面のローマ字キーボードで打ちます。「し」は si でも shi でも通ります。左下の「かな」でフリック入力に切り替えられます。':'画面の12キーをフリックして打ちます。中央を押すとあ段、左右上下でい・う・え・お段。「小゛゜」で濁点や小さい文字にします。右上の ABC でローマ字入力に切り替えられます。';$('hint-touch').textContent='「はじめる」を押すと、画面のキーボードで打てます'}};
+  setHelp();X.setHelpText=setHelp;$('ime').innerHTML=IME_MSG}
 X.renderHome();
 nativeRestore();remindSchedule();
 if(location.search.includes('test=1'))selfTest();else if(!S.help)ovl('ovl-help',true);

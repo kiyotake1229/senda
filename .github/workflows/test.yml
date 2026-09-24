@@ -1,5 +1,5 @@
 # 閃打の自動テスト。main への push と pull request のたびに実行する。
-#   - ローマ字入力エンジンのテスト（tools/test_romaji.js）
+#   - ローマ字入力エンジンのテスト（tools/test_romaji.js）とかな入力のテスト（tools/test_kana.js）
 #   - お題データの検査（tools/check_decks.py。macOS の読みとの突き合わせは macOS 上でのみ手動で行う）
 name: test
 on:
@@ -17,5 +17,7 @@ jobs:
           node-version: 22
       - name: ローマ字エンジンのテスト
         run: node tools/test_romaji.js
+      - name: かな入力のテスト
+        run: node tools/test_kana.js
       - name: お題データの検査
         run: python3 tools/check_decks.py
