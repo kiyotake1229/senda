@@ -273,9 +273,9 @@ kbd{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var
 .kbd .key.hit rect{fill:rgba(255,255,255,.28)}
 .kbd .key.miss rect{fill:rgba(255,90,110,.45);stroke:var(--shu)}
 .p-foot{display:flex;justify-content:space-between;align-items:center;color:var(--tx3);font-size:12px;margin-top:8px}
-.ovl{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(6,9,16,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.ovl{position:absolute;inset:0;z-index:30;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:calc(var(--safet) + 16px) 16px calc(var(--safeb) + 16px);background:rgba(6,9,16,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .ovl.on{display:flex}
-.ovl .box{width:min(92vw,440px);background:var(--bg2);border:1px solid var(--line2);border-radius:18px;padding:24px;box-shadow:0 40px 100px -30px rgba(0,0,0,.9);animation:sIn .28s both}
+.ovl .box{width:min(92vw,440px);margin:auto;background:var(--bg2);border:1px solid var(--line2);border-radius:18px;padding:24px;box-shadow:0 40px 100px -30px rgba(0,0,0,.9);animation:sIn .28s both}
 .ovl .box h3{font-family:var(--disp);font-weight:800;font-size:22px;letter-spacing:.14em;margin:0 0 6px}
 .ovl .box p{color:var(--tx2);margin:0 0 16px;font-size:14px}
 .ovl .acts{display:flex;flex-direction:column;gap:8px}
@@ -389,6 +389,9 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 .hc h4{margin:0 0 6px;font-size:15px;letter-spacing:.06em}
 .hc p{margin:0;font-size:13px;color:var(--tx2);line-height:1.7}
 .ovl .box.wide{width:min(94vw,820px)}
+#ovl-help .box{display:flex;flex-direction:column;max-height:calc(100dvh - var(--safet) - var(--safeb) - 32px)}
+#ovl-help .help-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -6px;padding:0 6px}
+#ovl-help .help-foot{flex:none;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 
 /* スマホ用の画面キーボード（フリック / ローマ字） */
 .mkb{position:absolute;left:0;right:0;bottom:0;z-index:24;height:46vh;min-height:280px;padding:10px 8px calc(var(--safeb) + 8px);
@@ -458,7 +461,12 @@ a.btn{text-decoration:none}
   .grid2{grid-template-columns:1fr}
   .badges{grid-template-columns:repeat(2,1fr)}
   .lifetime{grid-template-columns:repeat(2,1fr)}
-  .help-cards{grid-template-columns:1fr}
+  .help-cards{grid-template-columns:1fr;gap:8px;margin:10px 0 4px}
+  .hc{padding:12px 14px}
+  .hc svg{width:22px;height:22px;margin-bottom:6px}
+  .hc h4{font-size:14px;margin-bottom:4px}
+  .hc p{font-size:12.5px;line-height:1.65}
+  .ovl .box{padding:18px}
   .combo{top:auto;bottom:-6px;transform:none}
   .combo .n{font-size:56px}
 }
@@ -720,15 +728,17 @@ a.btn{text-decoration:none}
   <!-- overlays -->
   <div class="ovl" id="ovl-pause"><div class="box"><h3>一時停止</h3><p>タイマーは止まっています。</p><div class="acts"><button class="btn pri" id="b-resume">再開する<kbd>Esc</kbd></button><button class="btn" id="b-finish" hidden>終了して結果を見る</button><button class="btn" id="b-restart">最初からやり直す</button><button class="btn ghost" id="b-quit">やめてホームへ</button></div></div></div>
   <div class="ovl" id="ovl-cd"><div class="cd" id="cd">3</div></div>
-  <div class="ovl" id="ovl-help"><div class="box wide">
+  <div class="ovl" id="ovl-help"><div class="box wide" role="dialog" aria-label="遊び方">
     <h3>遊び方</h3>
-    <p>表示された語をローマ字で打つだけ。正確さと速さでスコアとランクが決まります。</p>
+    <div class="help-body">
+    <p>表示された語を打つだけ。正確さと速さでスコアとランクが決まります。</p>
     <div class="help-cards">
       <div class="hc"><svg><use href="#i-kbd"/></svg><h4 id="help-ime-t">IMEはオフで</h4><p id="help-ime-p">日本語入力をオフ（半角英数）にして打ちます。「し」は si でも shi でも、「ん」は n でも nn でも、どの打ち方でも通ります。表示は打ち方に合わせて変わります。</p></div>
       <div class="hc"><svg><use href="#i-bolt"/></svg><h4>コンボと閃</h4><p>ミスなく打ち続けるとコンボが伸び、音が高く、光が強くなります。10 / 25 / 50 / 100 / 200 で演出が変わります。ミスをすると 0 に戻ります。</p></div>
-      <div class="hc"><svg><use href="#i-target"/></svg><h4>スコアとランク</h4><p>スコア = KPM × 正確率³ × コンボ補正。速くても雑だと伸びません。800 で最高位「神速」。結果の弱点キーから特訓へ進めます。</p></div>
+      <div class="hc"><svg><use href="#i-target"/></svg><h4>スコアとランク</h4><p>スコア = KPM × 正確率³ × コンボ補正。速くても雑だと伸びません。最高位は「神速」。結果の弱点キーから特訓へ進めます。</p></div>
     </div>
-    <div class="row" style="justify-content:flex-end"><button class="btn pri" id="b-help-close">はじめる</button></div>
+    </div>
+    <div class="help-foot"><button class="btn pri" id="b-help-close">はじめる</button></div>
   </div></div>
   <div class="ovl" id="ovl-share"><div class="box wide" style="text-align:center"><h3>結果カード</h3><p>長押し（または右クリック）で保存できます。</p><img id="share-img" alt="結果カード" style="width:100%;border-radius:12px;border:1px solid var(--line2)"><div class="row" style="justify-content:center;margin-top:14px"><button class="btn pri" id="b-share-native" hidden>共有する</button><button class="btn" id="b-share-close">閉じる</button></div></div></div>
 
@@ -1840,7 +1850,7 @@ function selfTest(){
   const T=[['し','si',1],['し','shi',1],['し','ci',1],['ち','ti',1],['ち','chi',1],['つ','tu',1],['つ','tsu',1],['ふ','fu',1],['ふ','hu',1],['じ','ji',1],['じ','zi',1],['じゃ','ja',1],['じゃ','jya',1],['じゃ','zya',1],['しゃ','sha',1],['しゃ','sya',1],['ちゃ','cha',1],['ちゃ','tya',1],['ちゃ','cya',1],['きゃ','kya',1],['きゃ','kixya',1],['てぃ','thi',1],['てぃ','texi',1],['でぃ','dhi',1],['ふぁ','fa',1],['うぃ','wi',1],['うぃ','whi',1],['ゔ','vu',1],['を','wo',1],['ぢ','di',1],['づ','du',1],['っか','kka',1],['っか','xtuka',1],['っか','ltuka',1],['っし','sshi',1],['っし','ssi',1],['っち','cchi',1],['っち','tti',1],['っじゃ','jja',1],['っじゃ','zzya',1],['あっ','axtu',1],['かんじ','kanji',1],['かんじ','kannji',1],['かんい','kanni',1],['かんい','kani',0],['かんな','kannna',1],["かんな","kan'na",1],['かんな','kanna',0],['ほんや','honnya',1],['ほんや','honya',0],['ん','nn',1],['ん','n',0],['ん','xn',1],['にゃ','nya',1],['ぁ','xa',1],['ぁ','la',1],['ー','-',1],['こーひー','ko-hi-',1],['、','。'.replace('。',','),1],['。','.',1],['！','!',1],['？','?',1],['しんぶんし','shinbunshi',1],['しんぶんし','sinbunsi',1],['とうきょう','toukyou',1],['ぎゅうにゅう','gyuunyuu',1],['ちょっと','chotto',1],['ちょっと','tyotto',1],['いっしょ','issho',1],['まっちゃ','maccha',1],['まっちゃ','mattya',1],['エンジン','enjinn',1],['ラーメン','ra-menn',1],['せんい','senni',1],['せんい','seni',0],['ばっは','bahha',1],['ぱっぱ','pappa',1],['くぁ','qa',1],['くぁ','kwa',1],['つぁ','tsa',1],['ゐ','wi',1],['しぇ','she',1],['ちぇ','che',1],['じぇ','je',1],['ふぉ','fo',1],['とぅ','twu',1],['てゅ','thu',1]];
   const rows=T.map(([k,typed,exp])=>{const t=makeTyper(k);let ok=true,done=false;for(const ch of typed){const r=t.input(ch);if(r==='miss'){ok=false;break}if(r==='done')done=true}const pass=exp?(ok&&done):!(ok&&done);return{k,typed,exp,pass,disp:createTyper(k).romajiDisplay()}});
   const passed=rows.filter(r=>r.pass).length;
-  const box=document.querySelector('#ovl-help .box');box.innerHTML=`<h3>ローマ字エンジン 自己テスト</h3><p>${passed} / ${rows.length} 件 合格${passed===rows.length?'（すべて正常）':''}。かなに対し、その打ち方が受理されるか（受理されないべきものは拒否されるか）を検証しています。</p><div style="max-height:50vh;overflow:auto"><table class="tbl"><tr><th>かな</th><th>標準表示</th><th>入力</th><th>期待</th><th>結果</th></tr>${rows.map(r=>`<tr><td>${r.k}</td><td class="num">${r.disp}</td><td class="num">${r.typed}</td><td>${r.exp?'受理':'拒否'}</td><td style="color:${r.pass?'var(--mint)':'var(--shu)'}">${r.pass?'OK':'NG'}</td></tr>`).join('')}</table></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" onclick="location.href=location.pathname">閉じる</button></div>`;
+  const box=document.querySelector('#ovl-help .box');box.style.overflowY='auto';box.innerHTML=`<h3>ローマ字エンジン 自己テスト</h3><p>${passed} / ${rows.length} 件 合格${passed===rows.length?'（すべて正常）':''}。かなに対し、その打ち方が受理されるか（受理されないべきものは拒否されるか）を検証しています。</p><div style="max-height:50vh;overflow:auto"><table class="tbl"><tr><th>かな</th><th>標準表示</th><th>入力</th><th>期待</th><th>結果</th></tr>${rows.map(r=>`<tr><td>${r.k}</td><td class="num">${r.disp}</td><td class="num">${r.typed}</td><td>${r.exp?'受理':'拒否'}</td><td style="color:${r.pass?'var(--mint)':'var(--shu)'}">${r.pass?'OK':'NG'}</td></tr>`).join('')}</table></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" onclick="location.href=location.pathname">閉じる</button></div>`;
   ovl('ovl-help',true);
 }
 
@@ -1887,6 +1897,8 @@ $('b-start').onclick=()=>{AU.resume();startRun(S.mode,S.deck,{first:X.getHome().
 $('b-daily').onclick=()=>{AU.resume();S.mode='daily';save();startRun('daily','mix')};
 $('b-stats').onclick=()=>show('stats');$('b-ach').onclick=()=>show('ach');$('b-set').onclick=()=>show('set');$('b-help').onclick=()=>ovl('ovl-help',true);
 $('b-help-close').onclick=closeHelp;
+$('ovl-help').addEventListener('click',e=>{if(e.target.id==='ovl-help'&&!location.search.includes('test=1'))closeHelp()});
+$('ovl-share').addEventListener('click',e=>{if(e.target.id==='ovl-share')ovl('ovl-share',false)});
 ['b-back1','b-back2','b-back3','b-home'].forEach(id=>$(id).onclick=()=>show('home'));
 $('b-retry').onclick=retry;$('b-share').onclick=shareCard;$('b-share-close').onclick=()=>ovl('ovl-share',false);
 $('b-copy').onclick=()=>copyText(resultText()).then(()=>toast('結果をコピーしました'));
