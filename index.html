@@ -1821,7 +1821,7 @@ function renderSet(){
   document.querySelectorAll('#sw-acc .swatch').forEach(b=>b.onclick=()=>{S.set.accent=b.dataset.a;X.applyAccent();save();renderSet()});
   if($('s-mkbh')){$('s-mkbh').oninput=e=>{const h=+e.target.value;S.set.mkbH=h;MKB.setSize(h);$('s-mkbh-v').textContent=h+'%';save()};
     document.querySelectorAll('#seg-side button').forEach(b=>b.onclick=()=>{S.set.mkbSide=b.dataset.v;MKB.setSide(b.dataset.v);save();renderSet()})}
-  document.querySelectorAll('#seg-im button').forEach(b=>b.onclick=()=>{S.set.im=b.dataset.v;save();renderSet();if(X.setHelpText)X.setHelpText();toast(b.dataset.v==='sys'?'端末のキーボードで打ちます':'画面のキーボードで打ちます')});
+  document.querySelectorAll('#seg-im button').forEach(b=>b.onclick=()=>{S.set.im=b.dataset.v;save();renderSet();if(X.setHelpText)X.setHelpText();if(X.syncHid)X.syncHid();toast(b.dataset.v==='sys'?'端末のキーボードで打ちます':'画面のキーボードで打ちます')});
   document.querySelectorAll('#seg-ro button').forEach(b=>b.onclick=()=>{S.set.romaji=b.dataset.v;save();renderSet()});
   document.querySelectorAll('#seg-sz button').forEach(b=>b.onclick=()=>{S.set.size=b.dataset.v;X.applyAccent();save();renderSet()});
   $('b-exp').onclick=()=>{copyText(JSON.stringify(S)).then(()=>toast('コピーしました'))};
@@ -1917,12 +1917,20 @@ document.addEventListener('keydown',e=>{
 const hid=$('hid');
 hid.addEventListener('input',e=>{if(e.isComposing)return;const data=e.data!=null?e.data:hid.value;hid.value='';if(!data)return;AU.resume();for(const ch of data)onChar(ch)});
 hid.addEventListener('compositionstart',imeWarn);
-if(TOUCH){['stage','start','pbody'].forEach(id=>$(id).addEventListener('touchend',e=>{if(X.imOf()==='sys')hid.focus({preventScroll:true})}));
+/* 画面キーボード（フリック・画面ローマ字）のときは、見えない入力欄に入力先が移らないようにする。
+   移ると端末のキーボードが出てしまうため。端末のキーボードを使う設定（外付け）のときだけ働かせる。 */
+const useSysKb=()=>TOUCH&&X.imOf()==='sys';
+function focusHid(){if(useSysKb()){try{hid.focus({preventScroll:true})}catch(e){}}}
+function syncHid(){const on=!TOUCH||useSysKb();hid.readOnly=!on;hid.tabIndex=on?0:-1;hid.setAttribute('inputmode',on?'text':'none');
+  if(!on&&document.activeElement===hid)hid.blur()}
+hid.addEventListener('focus',()=>{if(TOUCH&&!useSysKb())setTimeout(()=>{if(document.activeElement===hid)hid.blur()},0)});
+syncHid();X.syncHid=syncHid;
+if(TOUCH){['stage','start','pbody'].forEach(id=>$(id).addEventListener('touchend',e=>{focusHid()}));
   hid.addEventListener('blur',()=>{if(X.getScreen()==='play'&&R&&!R.ended&&X.imOf()==='sys')$('tap').classList.add('on')});hid.addEventListener('focus',()=>$('tap').classList.remove('on'));
-  $('tap').addEventListener('touchend',e=>{e.preventDefault();hid.focus({preventScroll:true})})}
+  $('tap').addEventListener('touchend',e=>{e.preventDefault();focusHid()})}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&R&&R.started&&!R.ended&&!paused)pause()});
 function retry(){if(!lastRes)return show('home');const m=lastRes.rec.mode;startRun(m,m==='daily'?S.deck:lastRes.rec.deck,{weak:R&&R.weak,len:lastRes.rec.len})}
-function closeHelp(){ovl('ovl-help',false);S.help=true;save();if(TOUCH)hid.focus({preventScroll:true})}
+function closeHelp(){ovl('ovl-help',false);S.help=true;save();focusHid()}
 
 /* ---------- ボタン ---------- */
 $('b-start').onclick=()=>{AU.resume();startRun(S.mode,S.deck,{first:X.getHome().item})};
@@ -1934,14 +1942,14 @@ $('ovl-share').addEventListener('click',e=>{if(e.target.id==='ovl-share')ovl('ov
 ['b-back1','b-back2','b-back3','b-home'].forEach(id=>$(id).onclick=()=>show('home'));
 $('b-retry').onclick=retry;$('b-share').onclick=shareCard;$('b-share-close').onclick=()=>ovl('ovl-share',false);
 $('b-copy').onclick=()=>copyText(resultText()).then(()=>toast('結果をコピーしました'));
-$('b-resume').onclick=()=>{if(TOUCH)hid.focus({preventScroll:true});resume()};
+$('b-resume').onclick=()=>{focusHid();resume()};
 $('b-pause').onclick=()=>{if(R&&!R.ended)pause()};$('b-quit').onclick=quitToHome;$('b-restart').onclick=()=>{const m=R.mode,d=R.deck,w=R.weak,l=R.len;quitToHome();startRun(m,d,{weak:w,len:l})};
 $('b-finish').onclick=()=>{ovl('ovl-pause',false);paused=false;finish()};
-$('start').addEventListener('click',()=>{AU.resume();if(TOUCH)hid.focus({preventScroll:true})});
+$('start').addEventListener('click',()=>{AU.resume();focusHid()});
 
 /* ---------- 起動 ---------- */
 KBD.mount($('kbd'));
-MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH){S.set.im=m;save();if(X.setHelpText)X.setHelpText()}},onSize:h=>{S.set.mkbH=h;save()}});
+MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH){S.set.im=m;save();if(X.setHelpText)X.setHelpText();if(X.syncHid)X.syncHid()}},onSize:h=>{S.set.mkbH=h;save()}});
 MKB.setSize(S.set.mkbH||40);MKB.setSide(S.set.mkbSide||'both');
 if(TOUCH){
   const setHelp=()=>{const im=X.imOf();
