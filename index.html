@@ -102,6 +102,7 @@ svg{display:block}
 .iconbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .iconbtn:hover{background:rgba(255,255,255,.08);color:var(--tx);border-color:var(--line2);transform:translateY(-1px)}
 .iconbtn.sq{width:40px;padding:0;justify-content:center}
+.iconbtn.muted{color:var(--shu);border-color:rgba(255,90,110,.45)}
 .navs{display:flex;gap:8px;align-items:center}
 .kbdhint{font-family:var(--mono);font-size:11px;color:var(--tx3);letter-spacing:.06em}
 kbd{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:rgba(255,255,255,.04)}
@@ -169,6 +170,7 @@ kbd{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var
 .deck.on{border-color:rgba(var(--fl-rgb),.6);background:rgba(var(--fl-rgb),.1);color:var(--tx)}
 .deck.on small{color:var(--fl)}
 .deck.dis{opacity:.4;pointer-events:none}
+.mode.dis{opacity:.4;pointer-events:none}
 .side{display:flex;flex-direction:column;gap:12px}
 .best .big{font-family:var(--mono);font-size:44px;font-weight:700;line-height:1;letter-spacing:-.02em}
 .best .rk{font-family:var(--disp);font-weight:800;font-size:22px;letter-spacing:.14em}
@@ -394,11 +396,12 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 #ovl-help .help-foot{flex:none;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 
 /* スマホ用の画面キーボード（フリック / ローマ字） */
-.mkb{position:absolute;left:0;right:0;bottom:0;z-index:24;height:var(--mkb-h,40vh);min-height:170px;padding:16px 8px calc(var(--safeb) + 8px);
+.mkb{position:absolute;left:0;right:0;bottom:0;z-index:24;height:var(--mkb-hpx,40vh);padding:16px 8px calc(var(--safeb) + 8px);
   background:linear-gradient(180deg,rgba(11,14,21,0),rgba(11,14,21,.92) 14%,#0B0E15 36%);touch-action:none;-webkit-user-select:none;user-select:none}
 .mkb[hidden]{display:none}
-.mkb.side-left .mkb-kana,.mkb.side-left .mkb-abc{width:84%;margin-right:auto}
-.mkb.side-right .mkb-kana,.mkb.side-right .mkb-abc{width:84%;margin-left:auto}
+.mkb-kana,.mkb-abc{max-width:560px;margin-left:auto;margin-right:auto}
+.mkb.side-left .mkb-kana,.mkb.side-left .mkb-abc{width:84%;margin-left:0;margin-right:auto}
+.mkb.side-right .mkb-kana,.mkb.side-right .mkb-abc{width:84%;margin-left:auto;margin-right:0}
 .mkb-handle{position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:96px;height:24px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;z-index:2}
 .mkb-handle i{display:block;width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.3);transition:background .15s,width .15s}
 .mkb-handle.drag i,.mkb-handle:focus-visible i{background:var(--fl);width:64px}
@@ -414,6 +417,7 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 .mk.fn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .mk.ab{flex:1;font-family:var(--mono);font-size:calc(var(--mkb-fs,23px) * .78)}
 .mk.ab.wide{flex:3}
+.mkb-abc .mk.fn{flex:1.5}
 .mk.mod{font-size:calc(var(--mkb-fs,23px) * .72);letter-spacing:.02em}
 .mkb-guide{position:fixed;z-index:31;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,42px);gap:3px;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 12px 24px rgba(0,0,0,.6))}
 .mkb-guide[hidden]{display:none}
@@ -421,7 +425,7 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 .gc.on{background:var(--fl);color:#06111c;font-weight:700;border-color:var(--fl)}
 .gc.blank{opacity:0}
 /* キーボードを出している間のプレイ画面 */
-.kbon .p-body{justify-content:flex-start;padding-top:2vh;margin-bottom:max(var(--mkb-h,40vh),170px)}
+.kbon .p-body{justify-content:flex-start;padding-top:2vh;margin-bottom:var(--mkb-hpx,40vh)}
 .kbon .kbd,.kbon .ghostrace,.kbon .s-next{display:none}
 .kbon .s-text{font-size:32px}
 .kbon .s-kana{font-size:26px;letter-spacing:.16em}
@@ -512,6 +516,21 @@ a.btn{text-decoration:none}
   .combo .n{font-size:44px}
   .quick{grid-template-columns:1fr 1fr}
 }
+/* 幅の狭いスマホ：プレイ中の上の段にモード名まで並べると、スコアが3桁以上で右にはみ出すため省く */
+@media (max-width:430px){#p-mode{display:none}}
+/* 横向きのスマホ：画面キーボードを出したときに、お題とタイマーを小さくして収める */
+@media (orientation:landscape) and (max-height:500px){
+  .kbon .p-body{padding-top:0}
+  .kbon .s-text{font-size:22px}
+  .kbon .s-text.en{font-size:20px}
+  .kbon .s-kana{font-size:17px;margin-top:2px}
+  .kbon .s-ro{font-size:17px}
+  .kbon .s-mean{display:none}
+  .kbon .startnote{margin-top:0;font-size:12px}
+  .kbon .p-timer,.kbon .p-timer svg{width:44px;height:44px}
+  .kbon .p-timer .t{font-size:14px}
+  .kbon .combo .n{font-size:34px}
+}
 @media (prefers-reduced-motion:reduce){
   .shaker.shk,.s-ro span.pop,.combo .n.burst{animation:none}
 }
@@ -543,6 +562,8 @@ a.btn{text-decoration:none}
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
     <symbol id="i-dish" viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="9" ry="4"/><path d="M5 14v2c0 2 3 4 7 4s7-2 7-4v-2M8 10c0-3 2-5 4-5s4 2 4 5"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 9.5a3.5 3.5 0 0 1 0 5M19 7a7 7 0 0 1 0 10"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/></symbol>
     <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></symbol>
   </defs>
 </svg>
@@ -559,6 +580,7 @@ a.btn{text-decoration:none}
         <div class="navs">
           <span class="pill" id="lvpill"><span class="lv">Lv.1</span><span class="ttl">はじめの一打</span></span>
           <span class="flame" id="streak" title="連続プレイ日数"><svg><use href="#i-flame"/></svg><span>0日</span></span>
+          <button class="iconbtn sq" id="b-mute" title="音を消す" aria-label="音を消す" aria-pressed="false"><svg><use href="#i-sound"/></svg></button>
           <button class="iconbtn sq" id="b-stats" title="記録"><svg><use href="#i-chart"/></svg></button>
           <button class="iconbtn sq" id="b-ach" title="実績"><svg><use href="#i-medal"/></svg></button>
           <button class="iconbtn sq" id="b-set" title="設定"><svg><use href="#i-gear"/></svg></button>
@@ -1228,7 +1250,7 @@ const ymd=(d=new Date())=>`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDa
 const ymdDash=s=>`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
 const now=()=>performance.now();
 const NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-const TOUCH=('ontouchstart' in window)&&matchMedia('(pointer:coarse)').matches;
+const TOUCH=(('ontouchstart' in window)&&matchMedia('(pointer:coarse)').matches)||/[?&]touch=1(&|$)/.test(location.search);
 const REDUCE=matchMedia('(prefers-reduced-motion:reduce)').matches;
 if(REDUCE)document.documentElement.classList.add('reduce');
 if(TOUCH)document.documentElement.classList.add('touch');
@@ -1260,8 +1282,8 @@ const TIPS=['「し」は si でも shi でも、「ん」は n でも nn でも
 
 /* ---------- 保存 ---------- */
 const DB='senda.v1';
-const DEF=()=>({v:1,best:{},hist:[],daily:{},streak:{cur:0,best:0,last:null},keys:{},ach:{},total:{runs:0,keys:0,miss:0,sec:0,words:0,money:0},decks:{},help:false,mode:'sprint',deck:'mix',len:'all',bags:{},
-  set:{sfx:0.7,hat:1,shake:1,fx:1,kbd:!TOUCH,fingers:1,accent:'flash',romaji:'hepburn',size:'m',haptic:1,hints:1,mean:1,im:'kana',mkbH:40,mkbSide:'both',remind:{on:0,time:'20:00'}}});
+const DEF=()=>({v:1,best:{},hist:[],daily:{},streak:{cur:0,best:0,last:null},keys:{},ach:{},total:{runs:0,keys:0,miss:0,sec:0,words:0,money:0},decks:{},help:false,mode:'sprint',deck:'mix',len:'all',bags:{},kstats:{},
+  set:{sfx:0.7,hat:1,shake:1,fx:1,kbd:!TOUCH,fingers:1,accent:'flash',romaji:'hepburn',size:'m',haptic:1,hints:1,mean:1,im:'kana',mkbH:40,mkbSide:'both',mute:0,remind:{on:0,time:'20:00'}}});
 let S=DEF();
 try{const raw=localStorage.getItem(DB);if(raw){const o=JSON.parse(raw);S=Object.assign(DEF(),o);S.set=Object.assign(DEF().set,o.set||{});}}catch(e){}
 if(!DECKS[S.deck])S.deck='mix';if(!S.bags)S.bags={};
@@ -1309,7 +1331,7 @@ const AU=(()=>{
   function noise(len,type,freq,gain,t0){const b=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*len),ctx.sampleRate);const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
     const src=ctx.createBufferSource();src.buffer=b;const f=ctx.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=1.2;const g=ctx.createGain();g.gain.setValueAtTime(gain,t0);g.gain.exponentialRampToValueAtTime(0.0001,t0+len);src.connect(f);f.connect(g);g.connect(master);src.start(t0);src.stop(t0+len+.02)}
   function tone(type,f0,f1,len,gain,t0,curve){const o=ctx.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t0);if(f1&&f1!==f0)o.frequency.exponentialRampToValueAtTime(f1,t0+len);const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(gain,t0+.004);g.gain.exponentialRampToValueAtTime(0.0001,t0+len);o.connect(g);g.connect(master);o.start(t0);o.stop(t0+len+.03)}
-  const on=()=>S.set.sfx>0&&ensure()&&ctx.state==='running';
+  const on=()=>S.set.sfx>0&&!S.set.mute&&ensure()&&ctx.state==='running';
   return{
     resume,
     setVol(v){S.set.sfx=v;if(master)master.gain.value=v},
@@ -1397,6 +1419,7 @@ function deckItems(mode,deck){if(mode==='daily')return dailyItems();return DECKS
 let dailyCache={d:null,items:null};
 function dailyItems(){const d=ymd();if(dailyCache.d===d)return dailyCache.items;const rnd=mulberry32(parseInt(d,10)^0x5E17DA);let all=[];MIX_DECKS.forEach(k=>all=all.concat(DECKS[k].items));dailyCache={d,items:shuffle(all,rnd)};return dailyCache.items}
 function renderHome(){
+  if(imOf()==='kana'&&S.mode==='drill'){S.mode='sprint';save()}
   $('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button class="mode ${S.mode===k?'on':''} ${(k==='drill'&&imOf()==='kana')?'dis':''}" data-m="${k}"><svg><use href="#${m.icon}"/></svg><span class="n">${m.name}</span><span class="s">${m.sub}</span></button>`).join('');
   $('decks').innerHTML=DECK_ORDER.map(k=>`<button class="deck ${S.deck===k?'on':''} ${S.mode==='daily'?'dis':''}" data-d="${k}">${DECKS[k].name}<small>${DECKS[k].items.length}</small></button>`).join('');
   document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;save();renderHome();AU.resume()});
@@ -1446,14 +1469,16 @@ const MKB=(()=>{
     {k:'ma',c:'ま',f:['み','む','め','も']},{k:'ya',c:'や',f:['','ゆ','','よ']},{k:'ra',c:'ら',f:['り','る','れ','ろ']},
     {k:'mod',c:'小゛゜',mod:1},{k:'wa',c:'わ',f:['を','ん','ー','']},{k:'pun',c:'、',f:['。','？','！','']}
   ];
-  const ABC=['qwertyuiop','asdfghjkl','zxcvbnm'];
+  /* 画面ローマ字キーボード。お題に出る記号（、→, 。→. ！→! ？→? ー→- と英文の '）をすべて打てるようにする */
+  const ABC_ROWS=['qwertyuiop','asdfghjkl-','zxcvbnm,.'];
+  const ABC_EXTRA="'!?";
   const DIRS=['left','up','right','down'];
   let root=null,guide=null,mode='kana',last=null,cb={},active=null,sx=0,sy=0,dir='c';
   /* 高さ（画面の高さに対する割合 %）と片手モード */
   const H_MIN=28,H_MAX=52;let height=40,side='both',drag=null;
   function applySize(h){
     height=Math.round(clamp(h,H_MIN,H_MAX));const de=document.documentElement;de.style.setProperty('--mkb-h',height+'vh');
-    const px=Math.max(innerHeight*height/100,170);const keyH=(px-16-8-18)/4;
+    const px=Math.round(clamp(innerHeight*height/100,170,440));de.style.setProperty('--mkb-hpx',px+'px');const keyH=(px-16-8-18)/4;
     de.style.setProperty('--mkb-fs',Math.round(clamp(keyH*0.4,15,24))+'px');
     const hd=root&&$('mkb-handle');if(hd)hd.setAttribute('aria-valuenow',height);
   }
@@ -1469,8 +1494,8 @@ const MKB=(()=>{
     const kana=PAD.map((p,i)=>`<button class="mk${p.mod?' mod':''}" data-i="${i}" style="grid-column:${i%3+1};grid-row:${Math.floor(i/3)+1}">${p.c}</button>`).join('')
       +`<button class="mk fn" data-fn="abc" style="grid-column:4;grid-row:1/3">ABC</button>`
       +`<button class="mk fn" data-fn="pause" style="grid-column:4;grid-row:3/5" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button>`;
-    const abc=ABC.map(r=>`<div class="mkb-row">${[...r].map(c=>`<button class="mk ab" data-c="${c}">${c}</button>`).join('')}</div>`).join('')
-      +`<div class="mkb-row"><button class="mk fn" data-fn="kana">かな</button><button class="mk ab wide" data-c=" ">␣</button><button class="mk ab" data-c="-">-</button><button class="mk fn" data-fn="pause" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button></div>`;
+    const abc=ABC_ROWS.map(r=>`<div class="mkb-row">${[...r].map(c=>`<button class="mk ab" data-c="${c}">${c}</button>`).join('')}</div>`).join('')
+      +`<div class="mkb-row"><button class="mk fn" data-fn="kana">かな</button><button class="mk ab" data-c="'">'</button><button class="mk ab wide" data-c=" " aria-label="スペース">␣</button><button class="mk ab" data-c="!">!</button><button class="mk ab" data-c="?">?</button><button class="mk fn" data-fn="pause" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button></div>`;
     return `<div class="mkb-handle" id="mkb-handle" role="slider" tabindex="0" aria-label="キーボードの高さ" aria-valuemin="${H_MIN}" aria-valuemax="${H_MAX}"><i></i></div><div class="mkb-size" id="mkb-size"></div><div class="mkb-kana" id="mkb-kana">${kana}</div><div class="mkb-abc" id="mkb-abc" hidden>${abc}</div><div class="mkb-guide" id="mkb-guide" hidden></div>`;
   }
   function dirOf(dx,dy){const d=Math.hypot(dx,dy);if(d<22)return 'c';return Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down')}
@@ -1492,8 +1517,8 @@ const MKB=(()=>{
   function move(e){if(!active||!active.p||active.p.mod)return;e.preventDefault();dir=dirOf(e.clientX-sx,e.clientY-sy);paintGuide(dir)}
   function up(e){
     if(!active)return;e.preventDefault();const a=active;active=null;guide.hidden=true;a.el.classList.remove('on');
-    if(a.fn==='abc'){setMode('abc');return}
-    if(a.fn==='kana'){setMode('kana');return}
+    if(a.fn==='abc'){setMode('abc',true);return}
+    if(a.fn==='kana'){setMode('kana',true);return}
     if(a.fn==='pause'){cb.onPause&&cb.onPause();return}
     if(a.ch!==undefined){cb.onChar&&cb.onChar(a.ch);return}
     const p=a.p;
@@ -1501,7 +1526,8 @@ const MKB=(()=>{
     const ch=charFor(p,dir);if(!ch)return;last=ch;cb.onKana&&cb.onKana(ch);
   }
   function cancel(){if(!active)return;active.el.classList.remove('on');active=null;guide.hidden=true}
-  function setMode(m){mode=m;if(!root)return;$('mkb-kana').hidden=m!=='kana';$('mkb-abc').hidden=m!=='abc';cb.onMode&&cb.onMode(m)}
+  /* user: 利用者がキーで切り替えたとき。起動時や英語のお題での自動切り替えでは設定を書き換えない */
+  function setMode(m,user){mode=m;if(!root)return;$('mkb-kana').hidden=m!=='kana';$('mkb-abc').hidden=m!=='abc';if(user&&cb.onMode)cb.onMode(m)}
   return{
     mount(el,handlers){root=el;cb=handlers||{};root.innerHTML=html();guide=$('mkb-guide');
       root.addEventListener('pointerdown',down);root.addEventListener('pointermove',move);
@@ -1684,7 +1710,8 @@ function showResult(){
       if(better){isNew=true;S.best[k]=Object.assign({},rec,{ghost:MODES[r.mode].ghost?r.samples.slice(0,(MODES[r.mode].time||0)+1):undefined})}}
     if(r.mode==='daily'&&r.official)S.daily[ymd()]=rec;
     const t=ymd(),y=ymd(new Date(Date.now()-864e5));if(S.streak.last!==t){S.streak.cur=(S.streak.last===y)?S.streak.cur+1:1;S.streak.last=t;S.streak.best=Math.max(S.streak.best,S.streak.cur)}
-    if(r.im!=='kana')Object.entries(r.keys).forEach(([k,v])=>{if(!KEYRE.test(k))return;const s=S.keys[k]||(S.keys[k]={n:0,m:0,lat:0});s.n+=v.n;s.m+=v.m;if(v.lat)s.lat=s.lat?s.lat*.6+v.lat*.4:v.lat});
+    if(r.im==='kana'){S.kstats=S.kstats||{};Object.entries(r.keys).forEach(([k,v])=>{if(!Romaji.kanaKeyOf(k))return;const s=S.kstats[k]||(S.kstats[k]={n:0,m:0,lat:0});s.n+=v.n;s.m+=v.m;if(v.lat)s.lat=s.lat?s.lat*.6+v.lat*.4:v.lat})}
+    else Object.entries(r.keys).forEach(([k,v])=>{if(!KEYRE.test(k))return;const s=S.keys[k]||(S.keys[k]={n:0,m:0,lat:0});s.n+=v.n;s.m+=v.m;if(v.lat)s.lat=s.lat?s.lat*.6+v.lat*.4:v.lat});
     save();
   }
   lastRes={rec,rk,isNew,valid,deckName:(r.mode==='daily'?'日替わり':X.deckName(r.deck)+X.lenLabel(r.len))+(r.im&&r.im!=='key'?'・'+X.imLabel(r.im):'')};
@@ -1722,10 +1749,10 @@ const ACH=[
  ['combo100','百連','コンボ 100 に到達',r=>r.combo>=100],
  ['combo200','二百連','コンボ 200 に到達',r=>r.combo>=200],
  ['acc100','無傷','150打以上でミス 0',r=>r.miss===0&&r.correct>=150],
- ['kpm300','疾風の指','30秒以上の走りで KPM 300 以上',r=>r.kpm>=300&&r.sec>=30],
- ['kpm500','神速の指','30秒以上の走りで KPM 500 以上',r=>r.kpm>=500&&r.sec>=30],
- ['rankS','達人','ランク S 以上',r=>r.score>=500&&r.mode!=='free'&&r.sec>=30],
- ['rankSSS','閃','最高位「神速」に到達',r=>r.score>=800&&r.mode!=='free'&&r.sec>=30],
+ ['kpm300','疾風の指','30秒以上の走りで KPM 300 以上（フリックは 160）',r=>r.sec>=30&&r.kpm>=(r.im==='kana'?160:300)],
+ ['kpm500','神速の指','30秒以上の走りで KPM 500 以上（フリックは 260）',r=>r.sec>=30&&r.kpm>=(r.im==='kana'?260:500)],
+ ['rankS','達人','ランク S 以上',r=>r.mode!=='free'&&r.sec>=30&&['S','SS','SSS'].includes(rankOf(r.score,r.im)[1])],
+ ['rankSSS','閃','最高位「神速」に到達',r=>r.mode!=='free'&&r.sec>=30&&rankOf(r.score,r.im)[1]==='SSS'],
  ['streak7','七日皆勤','7日連続でプレイ',r=>S.streak.cur>=7],
  ['keys10k','一万打','累計 10,000 打',r=>S.total.keys>=10000],
  ['keys100k','十万打','累計 100,000 打',r=>S.total.keys>=100000],
@@ -1740,14 +1767,21 @@ function badgeSvg(i,unlocked){const hues=['#F3CF6F','#5FD3FF','#FFB547','#FF5A6E
 function renderAch(){$('badges').innerHTML=ACH.map((a,i)=>{const d=S.ach[a[0]];return`<div class="badge ${d?'':'lock'}">${badgeSvg(i,!!d)}<div><div class="n">${a[1]}</div><div class="d">${a[2]}</div>${d?`<div class="dt">${ymdDash(d)} 達成</div>`:''}</div></div>`}).join('')}
 
 /* ---------- 記録画面 ---------- */
+function kanaWeakCard(){
+  const ks=Object.entries(S.kstats||{}).filter(([k,v])=>v.n>=8);
+  let body='<div class="empty">フリック入力で数回プレイすると、苦手なかなが表示されます</div>';
+  if(ks.length>=6){const lats=ks.map(([k,v])=>v.lat).filter(Boolean).sort((a,b)=>a-b);const med=lats[Math.floor(lats.length/2)]||1;
+    const top=ks.map(([k,v])=>[k,3*(v.m/v.n)+Math.max(0,(v.lat||med)/med-1),v]).filter(x=>x[1]>0.15).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    body=top.length?`<div class="keys" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${top.map(([k,w,v])=>`<span class="wk"><b>${k}</b><span${v.m?'':' style="color:var(--tx3)"'}>${(v.m/v.n*100).toFixed(0)}%</span>${v.lat?`<span style="color:var(--tx3)">${Math.round(v.lat)}ms</span>`:''}</span>`).join('')}</div><div class="tips" style="margin-top:10px">ミス率と、前の文字から打つまでの時間から判定しています</div>`:'<div class="empty">目立って苦手なかなはありません</div>'}
+  return `<div class="card"><div class="h2">苦手なかな（フリック）</div>${body}</div>`}
 function renderStats(){
   const el=$('stats-body');const T=S.total;const bestKpm=S.hist.filter(h=>h.sec>=30).reduce((m,h)=>Math.max(m,h.kpm),0);const bestCombo=S.hist.reduce((m,h)=>Math.max(m,h.combo),0);
-  const hist=S.hist.filter(h=>MODES[h.mode].ranked).slice(0,30).reverse();
+  const cim=X.imOf();const hist=S.hist.filter(h=>MODES[h.mode].ranked&&(h.im||'key')===cim).slice(0,30).reverse();
   let chart='<div class="empty">スプリント・デイリー・食べ放題を3回以上プレイすると推移が表示されます</div>';
   if(hist.length>=3){const W=560,H=160,P=28;const mx=Math.max(...hist.map(h=>h.score),100),mn=0;const px=i=>P+i*(W-2*P)/(hist.length-1),py=v=>H-P-(v-mn)/(mx-mn)*(H-2*P);
     const pts=hist.map((h,i)=>[px(i),py(h.score)]);const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
     const grid=[0,.25,.5,.75,1].map(f=>{const y=py(mn+(mx-mn)*f);return`<line class="grid" x1="${P}" y1="${y}" x2="${W-P}" y2="${y}"/><text x="${P-6}" y="${y+3}" text-anchor="end">${Math.round(mn+(mx-mn)*f)}</text>`}).join('');
-    const rl=RANKS.filter(r=>r[0]>0&&r[0]<=mx).map(r=>`<line x1="${P}" y1="${py(r[0])}" x2="${W-P}" y2="${py(r[0])}" stroke="${r[3]}" stroke-opacity=".35" stroke-dasharray="3 4"/><text x="${W-P+4}" y="${py(r[0])+3}" fill="${r[3]}">${r[1]}</text>`).join('');
+    const rl=X.ranksFor(cim).filter(r=>r[0]>0&&r[0]<=mx).map(r=>`<line x1="${P}" y1="${py(r[0])}" x2="${W-P}" y2="${py(r[0])}" stroke="${r[3]}" stroke-opacity=".35" stroke-dasharray="3 4"/><text x="${W-P+4}" y="${py(r[0])+3}" fill="${r[3]}">${r[1]}</text>`).join('');
     chart=`<svg class="chart" viewBox="0 0 ${W+30} ${H}">${grid}${rl}<path class="ar" d="${d} L${pts[pts.length-1][0]} ${H-P} L${pts[0][0]} ${H-P}Z"/><path class="ln" d="${d}"/>${pts.map((p,i)=>`<circle class="pt ${i===pts.length-1?'last':''}" cx="${p[0]}" cy="${p[1]}" r="${i===pts.length-1?4:2.5}"><title>${ymdDash(hist[i].date)} ${MODES[hist[i].mode].name} ${hist[i].score}</title></circle>`).join('')}</svg>`}
   const bests=Object.entries(S.best).sort((a,b)=>b[1].score-a[1].score);
   const bt=bests.length?`<table class="tbl"><tr><th>モード</th><th>お題</th><th>スコア</th><th>ランク</th><th>KPM</th><th>正確率</th><th>コンボ</th><th>日付</th></tr>${bests.map(([k,b])=>{const rk=rankOf(b.score,b.im);return`<tr><td>${MODES[b.mode].name}</td><td>${(b.mode==='daily'?'日替わり':X.deckName(b.deck)+X.lenLabel(b.len))+((b.im&&b.im!=='key')?'・'+X.imLabel(b.im):'')}</td><td class="num">${b.mode==='buffet'?'¥'+fmt(b.money||0):fmt(b.score)}</td><td class="rk" style="color:${rk[3]}">${rk[2]}</td><td class="num">${fmt(b.kpm)}</td><td class="num">${b.acc.toFixed(1)}%</td><td class="num">${b.combo}</td><td class="num">${ymdDash(b.date)}</td></tr>`}).join('')}</table>`:'<div class="empty">まだ記録がありません</div>';
@@ -1763,8 +1797,8 @@ function renderStats(){
       <div class="tile"><div class="lbl">最大コンボ</div><div class="v" style="color:var(--amber)">${fmt(bestCombo)}</div><div class="d">連続 ${S.streak.best} 日が最長</div></div>
     </div>
     <div class="grid2">
-      <div class="card"><div class="h2">スコアの推移</div>${chart}</div>
-      <div class="card"><div class="h2">キーの弱点</div><div class="heatmap" style="max-width:520px">${KBD.heatSvg()}</div><div class="heat-legend"><span>ミス率</span><i></i><span>高い</span></div>${weak}</div>
+      <div class="card"><div class="h2">スコアの推移${TOUCH?`（${X.imLabel(cim)}）`:''}</div>${chart}</div>
+      ${cim==='kana'?kanaWeakCard():`<div class="card"><div class="h2">キーの弱点</div><div class="heatmap" style="max-width:520px">${KBD.heatSvg()}</div><div class="heat-legend"><span>ミス率</span><i></i><span>高い</span></div>${weak}</div>`}
     </div>
     <div class="card" style="margin-top:16px"><div class="h2">自己ベスト</div><div style="overflow-x:auto">${bt}</div></div>
     <div class="card" style="margin-top:16px"><div class="h2">最近の走り</div><div style="overflow-x:auto">${rt}</div></div>`;
@@ -1778,6 +1812,7 @@ function renderSet(){
    <div class="card">
     <div class="h2">音と手応え</div>
     <div class="srow"><div><div class="t">効果音の音量</div><div class="d">打鍵音はコンボで音階が上がります</div></div><input type="range" id="s-sfx" min="0" max="1" step="0.05" value="${s.sfx}" aria-label="効果音の音量"></div>
+    ${sw('mute','音を消す','効果音をすべて止めます（ホーム右上のボタンでも切り替え）')}
     ${sw('hat','コンボのリズム音','コンボ25以上でハイハットが鳴る')}
     ${sw('haptic','触覚フィードバック','スマホ・iOS版で振動')}
     ${sw('shake','ミス時の画面シェイク','')}
@@ -1788,11 +1823,9 @@ function renderSet(){
     <div class="srow"><div><div class="t">アクセントカラー</div></div><div class="swatches" id="sw-acc">${[['flash','#5FD3FF'],['mint','#3EE8A8'],['amber','#FFB547'],['sakura','#FF8FB1'],['violet','#B48CFF']].map(([k,c])=>`<button class="swatch ${s.accent===k?'on':''}" data-a="${k}" style="background:${c}" aria-label="${k}"></button>`).join('')}</div></div>
     <div class="srow"><div><div class="t">ローマ字の表示</div><div class="d">どちらの打ち方でも正解です。最初に表示する流儀だけ変わります</div></div><div class="seg" id="seg-ro"><button data-v="hepburn" class="${s.romaji==='hepburn'?'on':''}">shi・chi・tsu</button><button data-v="kunrei" class="${s.romaji==='kunrei'?'on':''}">si・ti・tu</button></div></div>
     <div class="srow"><div><div class="t">文字の大きさ</div></div><div class="seg" id="seg-sz"><button data-v="s" class="${s.size==='s'?'on':''}">小</button><button data-v="m" class="${s.size==='m'?'on':''}">中</button><button data-v="l" class="${s.size==='l'?'on':''}">大</button></div></div>
-    ${sw('kbd','画面キーボードを表示','次に押すキーが光る（Tabで切替）')}
-    ${sw('fingers','運指の色分け','小指・薬指・中指・人差し指を色で示す')}
-    ${sw('hints','特訓のヒント減衰','同じキーを3回続けて正しく打つと光らなくなる')}
+    ${TOUCH?'':sw('kbd','画面キーボードを表示','次に押すキーが光る（Tabで切替）')+sw('fingers','運指の色分け','小指・薬指・中指・人差し指を色で示す')+sw('hints','特訓のヒント減衰','同じキーを3回続けて正しく打つと光らなくなる')}
     ${sw('mean','ことわざ・四字熟語の意味を表示','打つ語の下に意味を出す（350語）')}
-    ${TOUCH?`<div class="srow"><div><div class="t">入力方式</div><div class="d">フリックは画面の12キー。ローマ字も画面キーボードで打てます</div></div><div class="seg" id="seg-im"><button data-v="kana" class="${(S.set.im||'kana')==='kana'?'on':''}">フリック</button><button data-v="abc" class="${S.set.im==='abc'?'on':''}">ローマ字</button><button data-v="sys" class="${S.set.im==='sys'?'on':''}">外付け</button></div></div>
+    ${TOUCH?`<div class="srow"><div><div class="t">入力方式</div><div class="d">フリックは画面の12キー。ローマ字も画面キーボードで打てます。外付けキーボードで打つと自動で「外付け」になります</div></div><div class="seg" id="seg-im"><button data-v="kana" class="${(S.set.im||'kana')==='kana'?'on':''}">フリック</button><button data-v="abc" class="${S.set.im==='abc'?'on':''}">ローマ字</button><button data-v="sys" class="${S.set.im==='sys'?'on':''}">外付け</button></div></div>
     <div class="srow"><div><div class="t">キーボードの高さ</div><div class="d">プレイ中はキーボード上端のつまみを上下に動かしても変えられます</div></div><div class="row" style="gap:8px;flex-wrap:nowrap"><input type="range" id="s-mkbh" min="28" max="52" step="1" value="${S.set.mkbH||40}" aria-label="キーボードの高さ"><span class="num" id="s-mkbh-v" style="min-width:3.2em;text-align:right;color:var(--tx2)">${S.set.mkbH||40}%</span></div></div>
     <div class="srow"><div><div class="t">片手モード</div><div class="d">キーボードの幅を狭めて左右に寄せます</div></div><div class="seg" id="seg-side"><button data-v="left" class="${S.set.mkbSide==='left'?'on':''}">左手</button><button data-v="both" class="${(S.set.mkbSide||'both')==='both'?'on':''}">両手</button><button data-v="right" class="${S.set.mkbSide==='right'?'on':''}">右手</button></div></div>`:''}
    </div>
@@ -1817,7 +1850,7 @@ function renderSet(){
     $('b-remind-test').onclick=async()=>{const okp=await remindPermission();if(!okp){toast('通知が許可されていません');return}toast((await remindTest())?'数秒後にテスト通知が届きます':'通知を送れませんでした')};
   }
   $('s-sfx').oninput=e=>{AU.setVol(parseFloat(e.target.value));save();AU.resume();AU.tick(12)};
-  document.querySelectorAll('#set-body .sw[data-k]').forEach(b=>b.onclick=()=>{S.set[b.dataset.k]=S.set[b.dataset.k]?0:1;save();renderSet()});
+  document.querySelectorAll('#set-body .sw[data-k]').forEach(b=>b.onclick=()=>{S.set[b.dataset.k]=S.set[b.dataset.k]?0:1;save();if(b.dataset.k==='mute'){AU.hatStop();paintMute()}renderSet()});
   document.querySelectorAll('#sw-acc .swatch').forEach(b=>b.onclick=()=>{S.set.accent=b.dataset.a;X.applyAccent();save();renderSet()});
   if($('s-mkbh')){$('s-mkbh').oninput=e=>{const h=+e.target.value;S.set.mkbH=h;MKB.setSize(h);$('s-mkbh-v').textContent=h+'%';save()};
     document.querySelectorAll('#seg-side button').forEach(b=>b.onclick=()=>{S.set.mkbSide=b.dataset.v;MKB.setSide(b.dataset.v);save();renderSet()})}
@@ -1897,12 +1930,13 @@ function imeWarn(){if(X.getScreen()==='play'){const w=$('ime-play');w.innerHTML=
 document.addEventListener('keydown',e=>{
   if(e.isComposing||e.key==='Process'||e.keyCode===229){imeWarn();return}
   if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(TOUCH&&e.key.length===1&&document.activeElement!==hid&&!document.querySelector('.ovl.on')&&['home','play'].includes(X.getScreen())){hwKey(e);return}
   const scr=X.getScreen();
   if($('ovl-help').classList.contains('on')){if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();closeHelp()}return}
   if($('ovl-share').classList.contains('on')){if(e.key==='Escape'||e.key==='Enter'){ovl('ovl-share',false)}return}
   if($('ovl-pause').classList.contains('on')){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();resume()}return}
   if($('ovl-cd').classList.contains('on'))return;
-  if(e.key==='Escape'){e.preventDefault();if(scr==='play'){if(R&&R.started&&!R.ended)pause();else quitToHome()}else if(scr!=='home')show('home');return}
+  if(e.key==='Escape'){e.preventDefault();if(scr==='play'){if(R&&R.ended)return;if(R&&R.started)pause();else quitToHome()}else if(scr!=='home')show('home');return}
   if(scr==='home'){
     if(e.key==='Enter'||e.key===' '){e.preventDefault();AU.resume();startRun(S.mode,S.deck,{first:X.getHome().item});return}
     if(e.key==='Tab'){e.preventDefault();X.pickHomeWord(true);return}
@@ -1929,12 +1963,45 @@ if(TOUCH){['stage','start','pbody'].forEach(id=>$(id).addEventListener('touchend
   hid.addEventListener('blur',()=>{if(X.getScreen()==='play'&&R&&!R.ended&&X.imOf()==='sys')$('tap').classList.add('on')});hid.addEventListener('focus',()=>$('tap').classList.remove('on'));
   $('tap').addEventListener('touchend',e=>{e.preventDefault();focusHid()})}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&R&&R.started&&!R.ended&&!paused)pause()});
+/* プレイ中に入力方式が変わったとき（外付けキーボードの検出・かな/ABC キー）。いま打っている語を新しい方式で最初から打てるようにする */
+function setRunIm(im){
+  if(X.getScreen()!=='play'||!R||R.ended)return;
+  R.im=im;if(im==='sys')MKB.hide();
+  const en=R.mode!=='daily'&&R.deck==='english';
+  const kana=im==='kana'&&!en&&Romaji.kanaTypeable(R.item[1]);
+  if(kana===R.kana)return;
+  R.kana=kana;R.typer=kana?Romaji.createKanaTyper(R.item[1]):makeTyper(R.item[1]);MKB.reset();
+  $('s-ro').classList.toggle('hide',kana);
+  if(!en){if(kana)paintKana();else renderKana($('s-kana'),R.typer.kana,0)}
+  if(!kana)KBD.setNext(renderRomaji($('s-ro'),R.typer),false);
+}
+function onPadMode(m){
+  S.set.im=m;save();syncHid();if(X.setHelpText)X.setHelpText();
+  if(m==='kana'&&X.getScreen()==='play'&&R&&!R.ended&&R.mode!=='daily'&&R.deck==='english'){MKB.show('abc');toast('English はローマ字キーボードで打ちます');return}
+  setRunIm(m);
+}
+/* iPad などに実物のキーボードをつないで打ったとき（見えない入力欄を通らずにキーが届いたとき）。
+   画面キーボードの設定のままだと打てないので、入力方式を「外付け」に切り替え、この1打もそのまま処理する */
+function hwKey(e){
+  e.preventDefault();
+  if(X.imOf()!=='sys'){
+    S.set.im='sys';save();syncHid();if(X.setHelpText)X.setHelpText();
+    toast('キーボードで打てるように切り替えました（設定の「入力方式」で戻せます）');
+    if(X.getScreen()==='play')setRunIm('sys');else X.renderHome();
+  }
+  if(X.getScreen()==='play'){if(!e.repeat)handleChar(e.key)}
+  else{AU.resume();if(e.key===' ')startRun(S.mode,S.deck,{first:X.getHome().item});else onChar(e.key)}
+  focusHid();
+}
 function retry(){if(!lastRes)return show('home');const m=lastRes.rec.mode;startRun(m,m==='daily'?S.deck:lastRes.rec.deck,{weak:R&&R.weak,len:lastRes.rec.len})}
 function closeHelp(){ovl('ovl-help',false);S.help=true;save();focusHid()}
 
 /* ---------- ボタン ---------- */
 $('b-start').onclick=()=>{AU.resume();startRun(S.mode,S.deck,{first:X.getHome().item})};
 $('b-daily').onclick=()=>{AU.resume();S.mode='daily';save();startRun('daily','mix')};
+function paintMute(){const b=$('b-mute');const m=!!S.set.mute;b.querySelector('use').setAttribute('href',m?'#i-mute':'#i-sound');b.setAttribute('aria-pressed',m);b.title=b.ariaLabel=m?'音を出す':'音を消す';b.classList.toggle('muted',m)}
+$('b-mute').onclick=()=>{S.set.mute=S.set.mute?0:1;save();AU.hatStop();paintMute();toast(S.set.mute?'音を消しました':'音を出します')};
+paintMute();
 $('b-stats').onclick=()=>show('stats');$('b-ach').onclick=()=>show('ach');$('b-set').onclick=()=>show('set');$('b-help').onclick=()=>ovl('ovl-help',true);
 $('b-help-close').onclick=closeHelp;
 $('ovl-help').addEventListener('click',e=>{if(e.target.id==='ovl-help'&&!location.search.includes('test=1'))closeHelp()});
@@ -1949,12 +2016,12 @@ $('start').addEventListener('click',()=>{AU.resume();focusHid()});
 
 /* ---------- 起動 ---------- */
 KBD.mount($('kbd'));
-MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH){S.set.im=m;save();if(X.setHelpText)X.setHelpText();if(X.syncHid)X.syncHid()}},onSize:h=>{S.set.mkbH=h;save()}});
+MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH)onPadMode(m)},onSize:h=>{S.set.mkbH=h;save()}});
 MKB.setSize(S.set.mkbH||40);MKB.setSide(S.set.mkbSide||'both');
 if(TOUCH){
   const setHelp=()=>{const im=X.imOf();
     if(im==='sys'){$('help-ime-t').textContent='英語キーボードで';$('help-ime-p').textContent='端末のキーボードを英語（ABC）に切り替えて打ちます。日本語キーボードのままだと入力できません。設定で画面のキーボードに変えられます。';$('hint-touch').textContent='語をタップするとキーボードが出ます'}
-    else{$('help-ime-t').textContent='画面のキーボードで';$('help-ime-p').textContent=im==='abc'?'画面のローマ字キーボードで打ちます。「し」は si でも shi でも通ります。左下の「かな」でフリック入力に切り替えられます。':'画面の12キーをフリックして打ちます。中央を押すとあ段、左右上下でい・う・え・お段。「小゛゜」で濁点や小さい文字にします。右上の ABC でローマ字入力に切り替えられます。キーボード上端のつまみを上下に動かすと高さを変えられます。';$('hint-touch').textContent='「はじめる」を押すと、画面のキーボードで打てます'}};
+    else{$('help-ime-t').textContent='画面のキーボードで';$('help-ime-p').textContent=im==='abc'?'画面のローマ字キーボードで打ちます。「し」は si でも shi でも通ります。左下の「かな」でフリック入力に切り替えられます。外付けキーボードで打つと、自動でそちらに切り替わります。':'画面の12キーをフリックして打ちます。中央を押すとあ段、左右上下でい・う・え・お段。「小゛゜」で濁点や小さい文字にします。右上の ABC でローマ字入力に切り替えられます。キーボード上端のつまみを上下に動かすと高さを変えられます。外付けキーボードで打つと、自動でそちらに切り替わります。';$('hint-touch').textContent='「はじめる」を押すと、画面のキーボードで打てます'}};
   setHelp();X.setHelpText=setHelp;$('ime').innerHTML=IME_MSG}
 X.renderHome();
 nativeRestore();remindSchedule();

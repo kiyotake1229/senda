@@ -5,6 +5,7 @@
  *
  * 画面キーボードは「フリックで出せるかな」を送り、「小゛゜」キーで直前のかなを一巡させる。
  * ここではその手順を再現して、お題が最後まで打ち切れるかを検査する。
+ * あわせて、画面ローマ字キーボードのキーだけで全お題（英語を含む）を打ち切れるかも検査する。
  */
 'use strict';
 const fs = require('fs');
@@ -79,5 +80,25 @@ for (const [deck, d] of Object.entries(DECKS)) {
   }
 }
 
-console.log(`閃打 かな入力のテスト: ${pass} 件合格 / ${fail} 件失敗（お題 ${items} 件、英語以外）`);
+// ---- 5. 画面ローマ字キーボード ----
+// index.html の ABC_ROWS / ABC_EXTRA と空白キーで、お題の標準表示を最後まで打てるか
+const rows = JSON.parse(html.match(/const ABC_ROWS=(\[[^\]]*\]);/)[1].replace(/'/g, '"'));
+const extra = html.match(/const ABC_EXTRA="([^"]*)";/)[1];
+const PAD = new Set([...rows.join(''), ...extra, ' ']);
+let abcItems = 0; const missingChars = new Set();
+for (const [deck, d] of Object.entries(DECKS)) {
+  for (const it of d.items) {
+    abcItems++;
+    const t = R.createTyper(it[1]); const disp = t.romajiDisplay(); let bad = null;
+    for (const c of disp) {
+      const ch = c.toLowerCase(); // 大文字は小文字で受理される（キーボードに Shift はない）
+      if (!PAD.has(ch)) { bad = ch; missingChars.add(ch); break }
+      if (t.input(ch) === 'miss') { bad = ch; break }
+    }
+    ok(!bad && t.isDone(), `お題: ${deck} / ${it[0]} を画面ローマ字キーボードで打てない${bad ? `（${bad}）` : ''}`);
+  }
+}
+ok(missingChars.size === 0, `画面ローマ字キーボードにない文字: ${[...missingChars].join(' ')}`);
+
+console.log(`閃打 かな入力のテスト: ${pass} 件合格 / ${fail} 件失敗（フリック ${items} 件（英語以外）、画面ローマ字 ${abcItems} 件）`);
 if (fail) { for (const f of failures) console.log('  NG ' + f); process.exit(1); }
