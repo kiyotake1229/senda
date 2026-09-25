@@ -394,27 +394,34 @@ textarea{width:100%;min-height:90px;background:var(--bg1);border:1px solid var(-
 #ovl-help .help-foot{flex:none;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 
 /* スマホ用の画面キーボード（フリック / ローマ字） */
-.mkb{position:absolute;left:0;right:0;bottom:0;z-index:24;height:46vh;min-height:280px;padding:10px 8px calc(var(--safeb) + 8px);
+.mkb{position:absolute;left:0;right:0;bottom:0;z-index:24;height:var(--mkb-h,40vh);min-height:170px;padding:16px 8px calc(var(--safeb) + 8px);
   background:linear-gradient(180deg,rgba(11,14,21,0),rgba(11,14,21,.92) 14%,#0B0E15 36%);touch-action:none;-webkit-user-select:none;user-select:none}
 .mkb[hidden]{display:none}
+.mkb.side-left .mkb-kana,.mkb.side-left .mkb-abc{width:84%;margin-right:auto}
+.mkb.side-right .mkb-kana,.mkb.side-right .mkb-abc{width:84%;margin-left:auto}
+.mkb-handle{position:absolute;left:50%;top:-4px;transform:translateX(-50%);width:96px;height:24px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;z-index:2}
+.mkb-handle i{display:block;width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.3);transition:background .15s,width .15s}
+.mkb-handle.drag i,.mkb-handle:focus-visible i{background:var(--fl);width:64px}
+.mkb-size{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:12px;color:var(--tx);background:var(--bg3);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap}
+.mkb-size.on{opacity:1}
 .mkb-kana{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:6px;height:100%}
 .mkb-abc{display:flex;flex-direction:column;gap:6px;height:100%;justify-content:flex-end}
 .mkb-row{display:flex;gap:5px;flex:1}
-.mk{border-radius:12px;background:var(--bg2);border:1px solid var(--line);color:var(--tx);font-family:var(--ui);font-weight:500;font-size:23px;
+.mk{border-radius:12px;background:var(--bg2);border:1px solid var(--line);color:var(--tx);font-family:var(--ui);font-weight:500;font-size:var(--mkb-fs,23px);
   display:flex;align-items:center;justify-content:center;transition:background .08s,border-color .08s;padding:0}
 .mk:active,.mk.on{background:rgba(var(--fl-rgb),.28);border-color:var(--fl)}
 .mk.fn{font-size:13px;color:var(--tx2);letter-spacing:.06em}
 .mk.fn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-.mk.ab{flex:1;font-family:var(--mono);font-size:18px}
+.mk.ab{flex:1;font-family:var(--mono);font-size:calc(var(--mkb-fs,23px) * .78)}
 .mk.ab.wide{flex:3}
-.mk.mod{font-size:17px;letter-spacing:.02em}
+.mk.mod{font-size:calc(var(--mkb-fs,23px) * .72);letter-spacing:.02em}
 .mkb-guide{position:fixed;z-index:31;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,42px);gap:3px;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 12px 24px rgba(0,0,0,.6))}
 .mkb-guide[hidden]{display:none}
 .gc{display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--tx);background:#1b2233;border:1px solid var(--line2);border-radius:9px}
 .gc.on{background:var(--fl);color:#06111c;font-weight:700;border-color:var(--fl)}
 .gc.blank{opacity:0}
 /* キーボードを出している間のプレイ画面 */
-.kbon .p-body{justify-content:flex-start;padding-top:2vh;margin-bottom:46vh}
+.kbon .p-body{justify-content:flex-start;padding-top:2vh;margin-bottom:max(var(--mkb-h,40vh),170px)}
 .kbon .kbd,.kbon .ghostrace,.kbon .s-next{display:none}
 .kbon .s-text{font-size:32px}
 .kbon .s-kana{font-size:26px;letter-spacing:.16em}
@@ -1254,7 +1261,7 @@ const TIPS=['「し」は si でも shi でも、「ん」は n でも nn でも
 /* ---------- 保存 ---------- */
 const DB='senda.v1';
 const DEF=()=>({v:1,best:{},hist:[],daily:{},streak:{cur:0,best:0,last:null},keys:{},ach:{},total:{runs:0,keys:0,miss:0,sec:0,words:0,money:0},decks:{},help:false,mode:'sprint',deck:'mix',len:'all',bags:{},
-  set:{sfx:0.7,hat:1,shake:1,fx:1,kbd:!TOUCH,fingers:1,accent:'flash',romaji:'hepburn',size:'m',haptic:1,hints:1,mean:1,im:'kana',remind:{on:0,time:'20:00'}}});
+  set:{sfx:0.7,hat:1,shake:1,fx:1,kbd:!TOUCH,fingers:1,accent:'flash',romaji:'hepburn',size:'m',haptic:1,hints:1,mean:1,im:'kana',mkbH:40,mkbSide:'both',remind:{on:0,time:'20:00'}}});
 let S=DEF();
 try{const raw=localStorage.getItem(DB);if(raw){const o=JSON.parse(raw);S=Object.assign(DEF(),o);S.set=Object.assign(DEF().set,o.set||{});}}catch(e){}
 if(!DECKS[S.deck])S.deck='mix';if(!S.bags)S.bags={};
@@ -1442,13 +1449,29 @@ const MKB=(()=>{
   const ABC=['qwertyuiop','asdfghjkl','zxcvbnm'];
   const DIRS=['left','up','right','down'];
   let root=null,guide=null,mode='kana',last=null,cb={},active=null,sx=0,sy=0,dir='c';
+  /* 高さ（画面の高さに対する割合 %）と片手モード */
+  const H_MIN=28,H_MAX=52;let height=40,side='both',drag=null;
+  function applySize(h){
+    height=Math.round(clamp(h,H_MIN,H_MAX));const de=document.documentElement;de.style.setProperty('--mkb-h',height+'vh');
+    const px=Math.max(innerHeight*height/100,170);const keyH=(px-16-8-18)/4;
+    de.style.setProperty('--mkb-fs',Math.round(clamp(keyH*0.4,15,24))+'px');
+    const hd=root&&$('mkb-handle');if(hd)hd.setAttribute('aria-valuenow',height);
+  }
+  function applySide(sd){side=sd||'both';if(!root)return;root.classList.toggle('side-left',side==='left');root.classList.toggle('side-right',side==='right')}
+  function hdDown(e){e.preventDefault();e.stopPropagation();const hd=$('mkb-handle');try{hd.setPointerCapture(e.pointerId)}catch(_){}
+    drag={y:e.clientY,h:height};hd.classList.add('drag');showSize()}
+  function hdMove(e){if(!drag)return;e.preventDefault();e.stopPropagation();applySize(drag.h-(e.clientY-drag.y)/innerHeight*100);showSize()}
+  function hdUp(e){if(!drag)return;e.stopPropagation();drag=null;$('mkb-handle').classList.remove('drag');hideSize();cb.onSize&&cb.onSize(height)}
+  function hdKey(e){const d=e.key==='ArrowUp'?2:e.key==='ArrowDown'?-2:0;if(!d)return;e.preventDefault();e.stopPropagation();applySize(height+d);showSize();clearTimeout(hdKey.t);hdKey.t=setTimeout(hideSize,700);cb.onSize&&cb.onSize(height)}
+  function showSize(){const b=$('mkb-size');b.textContent=`高さ ${height}%`;b.classList.add('on')}
+  function hideSize(){$('mkb-size').classList.remove('on')}
   function html(){
     const kana=PAD.map((p,i)=>`<button class="mk${p.mod?' mod':''}" data-i="${i}" style="grid-column:${i%3+1};grid-row:${Math.floor(i/3)+1}">${p.c}</button>`).join('')
       +`<button class="mk fn" data-fn="abc" style="grid-column:4;grid-row:1/3">ABC</button>`
       +`<button class="mk fn" data-fn="pause" style="grid-column:4;grid-row:3/5" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button>`;
     const abc=ABC.map(r=>`<div class="mkb-row">${[...r].map(c=>`<button class="mk ab" data-c="${c}">${c}</button>`).join('')}</div>`).join('')
       +`<div class="mkb-row"><button class="mk fn" data-fn="kana">かな</button><button class="mk ab wide" data-c=" ">␣</button><button class="mk ab" data-c="-">-</button><button class="mk fn" data-fn="pause" aria-label="一時停止"><svg><use href="#i-pause"/></svg></button></div>`;
-    return `<div class="mkb-kana" id="mkb-kana">${kana}</div><div class="mkb-abc" id="mkb-abc" hidden>${abc}</div><div class="mkb-guide" id="mkb-guide" hidden></div>`;
+    return `<div class="mkb-handle" id="mkb-handle" role="slider" tabindex="0" aria-label="キーボードの高さ" aria-valuemin="${H_MIN}" aria-valuemax="${H_MAX}"><i></i></div><div class="mkb-size" id="mkb-size"></div><div class="mkb-kana" id="mkb-kana">${kana}</div><div class="mkb-abc" id="mkb-abc" hidden>${abc}</div><div class="mkb-guide" id="mkb-guide" hidden></div>`;
   }
   function dirOf(dx,dy){const d=Math.hypot(dx,dy);if(d<22)return 'c';return Math.abs(dx)>Math.abs(dy)?(dx<0?'left':'right'):(dy<0?'up':'down')}
   function charFor(p,d){if(p.mod)return null;if(d==='c')return p.c;const i=DIRS.indexOf(d);return (p.f&&p.f[i])||''}
@@ -1483,7 +1506,12 @@ const MKB=(()=>{
     mount(el,handlers){root=el;cb=handlers||{};root.innerHTML=html();guide=$('mkb-guide');
       root.addEventListener('pointerdown',down);root.addEventListener('pointermove',move);
       root.addEventListener('pointerup',up);root.addEventListener('pointercancel',cancel);root.addEventListener('lostpointercapture',cancel);
-      root.addEventListener('contextmenu',e=>e.preventDefault());setMode(mode)},
+      root.addEventListener('contextmenu',e=>e.preventDefault());setMode(mode);
+      const hd=$('mkb-handle');hd.addEventListener('pointerdown',hdDown);hd.addEventListener('pointermove',hdMove);hd.addEventListener('pointerup',hdUp);hd.addEventListener('pointercancel',hdUp);hd.addEventListener('keydown',hdKey);
+      applySize(height);applySide(side);addEventListener('resize',()=>applySize(height))},
+    setSize(h){applySize(h)},
+    setSide(sd){applySide(sd)},
+    size:()=>height,
     show(m){if(!root)return;if(m)setMode(m);root.hidden=false;$('scr-play').classList.add('kbon')},
     hide(){if(!root)return;root.hidden=true;guide.hidden=true;$('scr-play').classList.remove('kbon')},
     reset(){last=null},
@@ -1764,7 +1792,9 @@ function renderSet(){
     ${sw('fingers','運指の色分け','小指・薬指・中指・人差し指を色で示す')}
     ${sw('hints','特訓のヒント減衰','同じキーを3回続けて正しく打つと光らなくなる')}
     ${sw('mean','ことわざ・四字熟語の意味を表示','打つ語の下に意味を出す（350語）')}
-    ${TOUCH?`<div class="srow"><div><div class="t">入力方式</div><div class="d">フリックは画面の12キー。ローマ字も画面キーボードで打てます</div></div><div class="seg" id="seg-im"><button data-v="kana" class="${(S.set.im||'kana')==='kana'?'on':''}">フリック</button><button data-v="abc" class="${S.set.im==='abc'?'on':''}">ローマ字</button><button data-v="sys" class="${S.set.im==='sys'?'on':''}">外付け</button></div></div>`:''}
+    ${TOUCH?`<div class="srow"><div><div class="t">入力方式</div><div class="d">フリックは画面の12キー。ローマ字も画面キーボードで打てます</div></div><div class="seg" id="seg-im"><button data-v="kana" class="${(S.set.im||'kana')==='kana'?'on':''}">フリック</button><button data-v="abc" class="${S.set.im==='abc'?'on':''}">ローマ字</button><button data-v="sys" class="${S.set.im==='sys'?'on':''}">外付け</button></div></div>
+    <div class="srow"><div><div class="t">キーボードの高さ</div><div class="d">プレイ中はキーボード上端のつまみを上下に動かしても変えられます</div></div><div class="row" style="gap:8px;flex-wrap:nowrap"><input type="range" id="s-mkbh" min="28" max="52" step="1" value="${S.set.mkbH||40}" aria-label="キーボードの高さ"><span class="num" id="s-mkbh-v" style="min-width:3.2em;text-align:right;color:var(--tx2)">${S.set.mkbH||40}%</span></div></div>
+    <div class="srow"><div><div class="t">片手モード</div><div class="d">キーボードの幅を狭めて左右に寄せます</div></div><div class="seg" id="seg-side"><button data-v="left" class="${S.set.mkbSide==='left'?'on':''}">左手</button><button data-v="both" class="${(S.set.mkbSide||'both')==='both'?'on':''}">両手</button><button data-v="right" class="${S.set.mkbSide==='right'?'on':''}">右手</button></div></div>`:''}
    </div>
    ${canRemind()?`<div class="card">
     <div class="h2">毎日のリマインド</div>
@@ -1789,6 +1819,8 @@ function renderSet(){
   $('s-sfx').oninput=e=>{AU.setVol(parseFloat(e.target.value));save();AU.resume();AU.tick(12)};
   document.querySelectorAll('#set-body .sw[data-k]').forEach(b=>b.onclick=()=>{S.set[b.dataset.k]=S.set[b.dataset.k]?0:1;save();renderSet()});
   document.querySelectorAll('#sw-acc .swatch').forEach(b=>b.onclick=()=>{S.set.accent=b.dataset.a;X.applyAccent();save();renderSet()});
+  if($('s-mkbh')){$('s-mkbh').oninput=e=>{const h=+e.target.value;S.set.mkbH=h;MKB.setSize(h);$('s-mkbh-v').textContent=h+'%';save()};
+    document.querySelectorAll('#seg-side button').forEach(b=>b.onclick=()=>{S.set.mkbSide=b.dataset.v;MKB.setSide(b.dataset.v);save();renderSet()})}
   document.querySelectorAll('#seg-im button').forEach(b=>b.onclick=()=>{S.set.im=b.dataset.v;save();renderSet();if(X.setHelpText)X.setHelpText();toast(b.dataset.v==='sys'?'端末のキーボードで打ちます':'画面のキーボードで打ちます')});
   document.querySelectorAll('#seg-ro button').forEach(b=>b.onclick=()=>{S.set.romaji=b.dataset.v;save();renderSet()});
   document.querySelectorAll('#seg-sz button').forEach(b=>b.onclick=()=>{S.set.size=b.dataset.v;X.applyAccent();save();renderSet()});
@@ -1909,11 +1941,12 @@ $('start').addEventListener('click',()=>{AU.resume();if(TOUCH)hid.focus({prevent
 
 /* ---------- 起動 ---------- */
 KBD.mount($('kbd'));
-MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH){S.set.im=m;save();if(X.setHelpText)X.setHelpText()}}});
+MKB.mount($('mkb'),{onKana:ch=>handleChar(ch),onChar:ch=>handleChar(ch),onPause:()=>{if(R&&!R.ended)pause()},onMode:m=>{if(TOUCH){S.set.im=m;save();if(X.setHelpText)X.setHelpText()}},onSize:h=>{S.set.mkbH=h;save()}});
+MKB.setSize(S.set.mkbH||40);MKB.setSide(S.set.mkbSide||'both');
 if(TOUCH){
   const setHelp=()=>{const im=X.imOf();
     if(im==='sys'){$('help-ime-t').textContent='英語キーボードで';$('help-ime-p').textContent='端末のキーボードを英語（ABC）に切り替えて打ちます。日本語キーボードのままだと入力できません。設定で画面のキーボードに変えられます。';$('hint-touch').textContent='語をタップするとキーボードが出ます'}
-    else{$('help-ime-t').textContent='画面のキーボードで';$('help-ime-p').textContent=im==='abc'?'画面のローマ字キーボードで打ちます。「し」は si でも shi でも通ります。左下の「かな」でフリック入力に切り替えられます。':'画面の12キーをフリックして打ちます。中央を押すとあ段、左右上下でい・う・え・お段。「小゛゜」で濁点や小さい文字にします。右上の ABC でローマ字入力に切り替えられます。';$('hint-touch').textContent='「はじめる」を押すと、画面のキーボードで打てます'}};
+    else{$('help-ime-t').textContent='画面のキーボードで';$('help-ime-p').textContent=im==='abc'?'画面のローマ字キーボードで打ちます。「し」は si でも shi でも通ります。左下の「かな」でフリック入力に切り替えられます。':'画面の12キーをフリックして打ちます。中央を押すとあ段、左右上下でい・う・え・お段。「小゛゜」で濁点や小さい文字にします。右上の ABC でローマ字入力に切り替えられます。キーボード上端のつまみを上下に動かすと高さを変えられます。';$('hint-touch').textContent='「はじめる」を押すと、画面のキーボードで打てます'}};
   setHelp();X.setHelpText=setHelp;$('ime').innerHTML=IME_MSG}
 X.renderHome();
 nativeRestore();remindSchedule();
