@@ -28,11 +28,12 @@ TEXT_OK = re.compile(r'^(?:' + KANJI + r'|[ぁ-ゖァ-ヺー、。！？])+$')
 
 
 def k2h(s):
-    return ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ヶ' else c for c in s)
+    # ヶ（茅ヶ崎・八ヶ岳 など）は「が」「か」と読むので仮名にせず、漢字と同じに扱う
+    return ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ヴ' else c for c in s)
 
 
 def consistent(text, kana):
-    t = k2h(text.replace('ヴ', 'ゔ'))
+    t = k2h(text)
     pat = ''
     for m in re.finditer(KANJI + r'+|[^㐀-鿿豈-﫿々〆ヶ]+', t):
         seg = m.group(0)
